@@ -100,7 +100,7 @@
   }
   
   .product-card {
-    @apply bg-white rounded-card shadow-card overflow-hidden transition-all duration-300 group;
+    @apply bg-white rounded-card shadow-card overflow-hidden transition-all duration-300;
     @apply hover:shadow-card-hover hover:-translate-y-2;
   }
   
