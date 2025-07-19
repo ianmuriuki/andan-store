@@ -1,0 +1,283 @@
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/playfair-display/400.css';
+@import '@fontsource/playfair-display/600.css';
+@import '@fontsource/playfair-display/700.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-white text-neutral-700 antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    @apply text-neutral-800;
+    line-height: 1.2;
+    font-weight: 600;
+  }
+  
+  /* Focus styles for accessibility */
+  *:focus {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+  }
+  
+  /* Button focus styles */
+  button:focus {
+    @apply ring-2 ring-primary-500 ring-offset-2;
+  }
+  
+  /* Selection styles */
+  ::selection {
+    @apply bg-primary-100 text-primary-900;
+  }
+  
+  /* Scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-neutral-100;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-neutral-300 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-400;
+  }
+}
+
+@layer components {
+  /* Button Components */
+  .btn-primary {
+    @apply bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white font-medium px-6 py-3 rounded-button shadow-button transition-all duration-200 min-h-[44px] flex items-center justify-center;
+    @apply hover:shadow-card-hover hover:-translate-y-0.5 active:translate-y-0 active:shadow-button;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-button;
+  }
+  
+  .btn-secondary {
+    @apply bg-white hover:bg-neutral-50 active:bg-neutral-100 text-primary-500 border border-primary-500 font-medium px-6 py-3 rounded-button transition-all duration-200 min-h-[44px] flex items-center justify-center;
+    @apply hover:shadow-card hover:-translate-y-0.5 active:translate-y-0;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0;
+  }
+  
+  .btn-ghost {
+    @apply bg-transparent hover:bg-neutral-50 active:bg-neutral-100 text-neutral-700 font-medium px-6 py-3 rounded-button transition-all duration-200 min-h-[44px] flex items-center justify-center;
+  }
+  
+  .btn-danger {
+    @apply bg-error-500 hover:bg-error-600 active:bg-error-700 text-white font-medium px-6 py-3 rounded-button shadow-button transition-all duration-200 min-h-[44px] flex items-center justify-center;
+    @apply hover:shadow-card-hover hover:-translate-y-0.5 active:translate-y-0;
+  }
+  
+  /* Card Components */
+  .card {
+    @apply bg-white rounded-card shadow-card p-6 transition-all duration-300;
+    @apply hover:shadow-card-hover hover:-translate-y-1;
+  }
+  
+  .card-interactive {
+    @apply card cursor-pointer;
+    @apply hover:shadow-card-hover hover:-translate-y-2 hover:scale-[1.02];
+    @apply active:scale-[0.98] active:translate-y-0;
+  }
+  
+  .product-card {
+    @apply bg-white rounded-card shadow-card overflow-hidden transition-all duration-300 group;
+    @apply hover:shadow-card-hover hover:-translate-y-2;
+  }
+  
+  .category-card {
+    @apply bg-neutral-50 rounded-card p-6 text-center transition-all duration-300 cursor-pointer;
+    @apply hover:bg-white hover:shadow-card hover:-translate-y-1;
+  }
+  
+  /* Input Components */
+  .input-field {
+    @apply w-full px-4 py-3 border border-neutral-200 rounded-button focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 font-inter;
+    @apply placeholder:text-neutral-400 disabled:bg-neutral-50 disabled:text-neutral-500;
+  }
+  
+  .input-search {
+    @apply input-field pl-12 bg-neutral-50 hover:bg-white focus:bg-white;
+  }
+  
+  /* Layout Components */
+  .container-main {
+    @apply max-w-container mx-auto px-6;
+  }
+  
+  .section-padding {
+    @apply py-16;
+  }
+  
+  .grid-8pt {
+    @apply gap-8;
+  }
+  
+  /* Typography Components */
+  .text-heading {
+    @apply font-playfair font-semibold;
+  }
+  
+  .text-body {
+    @apply font-inter;
+  }
+  
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent;
+  }
+  
+  /* Special Components */
+  .offer-badge {
+    @apply absolute top-3 left-3 bg-accent-orange text-white px-3 py-1 rounded-full text-sm font-medium z-10;
+    @apply animate-pulse-gentle;
+  }
+  
+  .discount-badge {
+    @apply absolute top-3 right-3 bg-error-500 text-white px-2 py-1 rounded-full text-xs font-medium z-10;
+  }
+  
+  .rating-stars {
+    @apply flex items-center space-x-1;
+  }
+  
+  .sticky-cart {
+    @apply fixed bottom-6 right-6 bg-primary-500 text-white p-4 rounded-full shadow-lg hover:bg-primary-600 transition-all duration-200 z-50;
+    @apply hover:shadow-glow hover:scale-110;
+  }
+  
+  /* Loading Components */
+  .loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  
+  .loading-skeleton {
+    @apply bg-neutral-200 rounded animate-pulse;
+  }
+  
+  /* Glass Effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20;
+  }
+  
+  .glass-dark {
+    @apply bg-neutral-900/80 backdrop-blur-sm border border-neutral-700/20;
+  }
+  
+  /* Gradient Backgrounds */
+  .gradient-primary {
+    @apply bg-gradient-to-r from-primary-500 to-primary-600;
+  }
+  
+  .gradient-secondary {
+    @apply bg-gradient-to-r from-neutral-50 to-neutral-100;
+  }
+  
+  .gradient-hero {
+    @apply bg-gradient-to-br from-primary-50 via-white to-neutral-50;
+  }
+  
+  /* Animation Utilities */
+  .animate-on-scroll {
+    @apply opacity-0 translate-y-8 transition-all duration-700;
+  }
+  
+  .animate-on-scroll.in-view {
+    @apply opacity-100 translate-y-0;
+  }
+  
+  /* Mobile Optimizations */
+  @media (max-width: 640px) {
+    .container-main {
+      @apply px-4;
+    }
+    
+    .section-padding {
+      @apply py-12;
+    }
+    
+    .card {
+      @apply p-4;
+    }
+  }
+}
+
+/* Custom animations for specific components */
+@keyframes cart-bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0,0,0) scale(1);
+  }
+  40%, 43% {
+    transform: translate3d(0,-8px,0) scale(1.1);
+  }
+  70% {
+    transform: translate3d(0,-4px,0) scale(1.05);
+  }
+  90% {
+    transform: translate3d(0,-2px,0) scale(1.02);
+  }
+}
+
+.cart-bounce {
+  animation: cart-bounce 0.6s ease-out;
+}
+
+/* Notification styles */
+.toast-success {
+  @apply bg-success-500 text-white;
+}
+
+.toast-error {
+  @apply bg-error-500 text-white;
+}
+
+.toast-warning {
+  @apply bg-warning-500 text-white;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card {
+    @apply border-2 border-neutral-300;
+  }
+  
+  .btn-primary {
+    @apply border-2 border-primary-700;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
