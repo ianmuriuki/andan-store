@@ -2,22 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, Mail, Phone, Edit, Trash2, UserPlus, MoreVertical, Shield, User } from 'lucide-react';
 
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  role: 'user' | 'admin';
-  status: 'active' | 'inactive';
-  joinDate: string;
-  totalOrders: number;
-  totalSpent: number;
-  avatar?: string;
-}
-
-const AdminUsers: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([
+const AdminUsers = () => {
+  const [users, setUsers] = useState([
     {
       id: '1',
       firstName: 'John',
@@ -76,12 +62,12 @@ const AdminUsers: React.FC = () => {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const handleEdit = (user: User) => {
+  const handleEdit = (user) => {
     setEditingUser(user);
     setShowModal(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       setUsers(users.filter(u => u.id !== id));
     }
@@ -92,7 +78,7 @@ const AdminUsers: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleStatusToggle = (id: string) => {
+  const handleStatusToggle = (id) => {
     setUsers(users.map(user => 
       user.id === id 
         ? { ...user, status: user.status === 'active' ? 'inactive' : 'active' } 

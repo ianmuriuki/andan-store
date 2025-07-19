@@ -2,20 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit, Trash2, Search, Filter, Eye, MoreVertical } from 'lucide-react';
 
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  stock: number;
-  image: string;
-  status: 'active' | 'inactive';
-  sales: number;
-  rating: number;
-}
+i
 
-const AdminProducts: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([
+const AdminProducts = () => {
+  const [products, setProducts] = useState([
     {
       id: '1',
       name: 'Fresh Organic Apples',
@@ -64,12 +54,12 @@ const AdminProducts: React.FC = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const handleEdit = (product: Product) => {
+  const handleEdit = (product) => {
     setEditingProduct(product);
     setShowModal(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       setProducts(products.filter(p => p.id !== id));
     }
@@ -80,7 +70,7 @@ const AdminProducts: React.FC = () => {
     setShowModal(true);
   };
 
-  const getStockStatus = (stock: number) => {
+  const getStockStatus = (stock) => {
     if (stock === 0) return { color: 'text-red-600', bg: 'bg-red-100', label: 'Out of Stock' };
     if (stock < 10) return { color: 'text-orange-600', bg: 'bg-orange-100', label: 'Low Stock' };
     return { color: 'text-green-600', bg: 'bg-green-100', label: 'In Stock' };

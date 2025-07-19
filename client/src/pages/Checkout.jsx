@@ -1,46 +1,44 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { 
-  CreditCard, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  User, 
-  ArrowRight, 
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import {
+  CreditCard,
+  MapPin,
+  Phone,
+  Mail,
+  User,
+  ArrowRight,
   ArrowLeft,
   CheckCircle,
   Smartphone,
   Loader2,
   Shield,
-  Clock
-} from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
-import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
+  Clock,
+} from "lucide-react";
+import { useCart } from "../contexts/CartContext";
+import { useAuth } from "../contexts/AuthContext";
+import toast from "react-hot-toast";
 
 const schema = yup.object({
-  firstName: yup.string().required('First name is required'),
-  lastName: yup.string().required('Last name is required'),
-  email: yup.string().email('Invalid email').required('Email is required'),
-  phone: yup.string().required('Phone number is required'),
-  address: yup.string().required('Address is required'),
-  city: yup.string().required('City is required'),
-  postalCode: yup.string().required('Postal code is required'),
-  paymentMethod: yup.string().required('Payment method is required'),
-  mpesaNumber: yup.string().when('paymentMethod', {
-    is: 'mpesa',
-    then: (schema) => schema.required('M-Pesa number is required'),
+  firstName: yup.string().required("First name is required"),
+  lastName: yup.string().required("Last name is required"),
+  email: yup.string().email("Invalid email").required("Email is required"),
+  phone: yup.string().required("Phone number is required"),
+  address: yup.string().required("Address is required"),
+  city: yup.string().required("City is required"),
+  postalCode: yup.string().required("Postal code is required"),
+  paymentMethod: yup.string().required("Payment method is required"),
+  mpesaNumber: yup.string().when("paymentMethod", {
+    is: "mpesa",
+    then: (schema) => schema.required("M-Pesa number is required"),
     otherwise: (schema) => schema.notRequired(),
   }),
 });
 
-type FormData = yup.InferType<typeof schema>;
-
-const Checkout: React.FC = () => {
+const Checkout = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const { items, getCartTotal, clearCart } = useCart();
@@ -58,43 +56,45 @@ const Checkout: React.FC = () => {
     formState: { errors },
     watch,
     setValue,
-  } = useForm<FormData>({
+  } = useForm <
+  FormData >
+  {
     resolver: yupResolver(schema),
     defaultValues: {
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      paymentMethod: 'mpesa',
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      email: user?.email || "",
+      phone: user?.phone || "",
+      paymentMethod: "mpesa",
     },
-  });
+  };
 
-  const paymentMethod = watch('paymentMethod');
+  const paymentMethod = watch("paymentMethod");
 
   const steps = [
-    { id: 1, title: 'Delivery Information', icon: MapPin },
-    { id: 2, title: 'Payment Method', icon: CreditCard },
-    { id: 3, title: 'Review Order', icon: CheckCircle },
+    { id: 1, title: "Delivery Information", icon: MapPin },
+    { id: 2, title: "Payment Method", icon: CreditCard },
+    { id: 3, title: "Review Order", icon: CheckCircle },
   ];
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data) => {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
       return;
     }
 
     setIsProcessing(true);
-    
+
     try {
       // Simulate M-Pesa payment processing
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
       // Clear cart and redirect to success page
       clearCart();
-      toast.success('Order placed successfully!');
-      navigate('/orders');
+      toast.success("Order placed successfully!");
+      navigate("/orders");
     } catch (error) {
-      toast.error('Payment failed. Please try again.');
+      toast.error("Payment failed. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -110,12 +110,13 @@ const Checkout: React.FC = () => {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-neutral-800 mb-4">No items in cart</h2>
-          <p className="text-neutral-600 mb-6">Add some items to your cart before checkout.</p>
-          <button
-            onClick={() => navigate('/products')}
-            className="btn-primary"
-          >
+          <h2 className="text-2xl font-bold text-neutral-800 mb-4">
+            No items in cart
+          </h2>
+          <p className="text-neutral-600 mb-6">
+            Add some items to your cart before checkout.
+          </p>
+          <button onClick={() => navigate("/products")} className="btn-primary">
             Continue Shopping
           </button>
         </div>
@@ -127,7 +128,7 @@ const Checkout: React.FC = () => {
     <div className="min-h-screen bg-neutral-50">
       <div className="container-main section-padding">
         {/* Header */}
-        <motion.div 
+        <motion.div
           className="mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -142,7 +143,7 @@ const Checkout: React.FC = () => {
         </motion.div>
 
         {/* Progress Steps */}
-        <motion.div 
+        <motion.div
           className="card mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -153,15 +154,19 @@ const Checkout: React.FC = () => {
               const Icon = step.icon;
               const isActive = currentStep === step.id;
               const isCompleted = currentStep > step.id;
-              
+
               return (
                 <div key={step.id} className="flex items-center">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
-                      isCompleted ? 'bg-green-500 text-white' :
-                      isActive ? 'bg-primary-500 text-white' :
-                      'bg-neutral-200 text-neutral-600'
-                    }`}>
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+                        isCompleted
+                          ? "bg-green-500 text-white"
+                          : isActive
+                          ? "bg-primary-500 text-white"
+                          : "bg-neutral-200 text-neutral-600"
+                      }`}
+                    >
                       {isCompleted ? (
                         <CheckCircle className="w-6 h-6" />
                       ) : (
@@ -169,20 +174,28 @@ const Checkout: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <p className={`font-semibold ${
-                        isActive ? 'text-primary-500' : 
-                        isCompleted ? 'text-green-500' : 
-                        'text-neutral-600'
-                      }`}>
+                      <p
+                        className={`font-semibold ${
+                          isActive
+                            ? "text-primary-500"
+                            : isCompleted
+                            ? "text-green-500"
+                            : "text-neutral-600"
+                        }`}
+                      >
                         Step {step.id}
                       </p>
                       <p className="text-sm text-neutral-600">{step.title}</p>
                     </div>
                   </div>
                   {index < steps.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-8 ${
-                      currentStep > step.id ? 'bg-green-500' : 'bg-neutral-200'
-                    }`}></div>
+                    <div
+                      className={`flex-1 h-0.5 mx-8 ${
+                        currentStep > step.id
+                          ? "bg-green-500"
+                          : "bg-neutral-200"
+                      }`}
+                    ></div>
                   )}
                 </div>
               );
@@ -218,13 +231,17 @@ const Checkout: React.FC = () => {
                           <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
                           <input
                             type="text"
-                            {...register('firstName')}
-                            className={`input-field pl-10 ${errors.firstName ? 'border-error-500' : ''}`}
+                            {...register("firstName")}
+                            className={`input-field pl-10 ${
+                              errors.firstName ? "border-error-500" : ""
+                            }`}
                             placeholder="First name"
                           />
                         </div>
                         {errors.firstName && (
-                          <p className="text-error-500 text-sm mt-1">{errors.firstName.message}</p>
+                          <p className="text-error-500 text-sm mt-1">
+                            {errors.firstName.message}
+                          </p>
                         )}
                       </div>
 
@@ -236,13 +253,17 @@ const Checkout: React.FC = () => {
                           <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
                           <input
                             type="text"
-                            {...register('lastName')}
-                            className={`input-field pl-10 ${errors.lastName ? 'border-error-500' : ''}`}
+                            {...register("lastName")}
+                            className={`input-field pl-10 ${
+                              errors.lastName ? "border-error-500" : ""
+                            }`}
                             placeholder="Last name"
                           />
                         </div>
                         {errors.lastName && (
-                          <p className="text-error-500 text-sm mt-1">{errors.lastName.message}</p>
+                          <p className="text-error-500 text-sm mt-1">
+                            {errors.lastName.message}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -256,13 +277,17 @@ const Checkout: React.FC = () => {
                           <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
                           <input
                             type="email"
-                            {...register('email')}
-                            className={`input-field pl-10 ${errors.email ? 'border-error-500' : ''}`}
+                            {...register("email")}
+                            className={`input-field pl-10 ${
+                              errors.email ? "border-error-500" : ""
+                            }`}
                             placeholder="Email address"
                           />
                         </div>
                         {errors.email && (
-                          <p className="text-error-500 text-sm mt-1">{errors.email.message}</p>
+                          <p className="text-error-500 text-sm mt-1">
+                            {errors.email.message}
+                          </p>
                         )}
                       </div>
 
@@ -274,13 +299,17 @@ const Checkout: React.FC = () => {
                           <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
                           <input
                             type="tel"
-                            {...register('phone')}
-                            className={`input-field pl-10 ${errors.phone ? 'border-error-500' : ''}`}
+                            {...register("phone")}
+                            className={`input-field pl-10 ${
+                              errors.phone ? "border-error-500" : ""
+                            }`}
                             placeholder="+254 700 123 456"
                           />
                         </div>
                         {errors.phone && (
-                          <p className="text-error-500 text-sm mt-1">{errors.phone.message}</p>
+                          <p className="text-error-500 text-sm mt-1">
+                            {errors.phone.message}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -292,13 +321,17 @@ const Checkout: React.FC = () => {
                       <div className="relative">
                         <MapPin className="absolute left-3 top-3 text-neutral-400 w-5 h-5" />
                         <textarea
-                          {...register('address')}
-                          className={`input-field pl-10 h-24 resize-none ${errors.address ? 'border-error-500' : ''}`}
+                          {...register("address")}
+                          className={`input-field pl-10 h-24 resize-none ${
+                            errors.address ? "border-error-500" : ""
+                          }`}
                           placeholder="Enter your full delivery address"
                         />
                       </div>
                       {errors.address && (
-                        <p className="text-error-500 text-sm mt-1">{errors.address.message}</p>
+                        <p className="text-error-500 text-sm mt-1">
+                          {errors.address.message}
+                        </p>
                       )}
                     </div>
 
@@ -309,12 +342,16 @@ const Checkout: React.FC = () => {
                         </label>
                         <input
                           type="text"
-                          {...register('city')}
-                          className={`input-field ${errors.city ? 'border-error-500' : ''}`}
+                          {...register("city")}
+                          className={`input-field ${
+                            errors.city ? "border-error-500" : ""
+                          }`}
                           placeholder="City"
                         />
                         {errors.city && (
-                          <p className="text-error-500 text-sm mt-1">{errors.city.message}</p>
+                          <p className="text-error-500 text-sm mt-1">
+                            {errors.city.message}
+                          </p>
                         )}
                       </div>
 
@@ -324,12 +361,16 @@ const Checkout: React.FC = () => {
                         </label>
                         <input
                           type="text"
-                          {...register('postalCode')}
-                          className={`input-field ${errors.postalCode ? 'border-error-500' : ''}`}
+                          {...register("postalCode")}
+                          className={`input-field ${
+                            errors.postalCode ? "border-error-500" : ""
+                          }`}
                           placeholder="00100"
                         />
                         {errors.postalCode && (
-                          <p className="text-error-500 text-sm mt-1">{errors.postalCode.message}</p>
+                          <p className="text-error-500 text-sm mt-1">
+                            {errors.postalCode.message}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -366,16 +407,18 @@ const Checkout: React.FC = () => {
                       {/* M-Pesa Option */}
                       <motion.div
                         className={`border-2 rounded-card p-4 cursor-pointer transition-colors ${
-                          paymentMethod === 'mpesa' ? 'border-primary-500 bg-primary-50' : 'border-neutral-200 hover:border-neutral-300'
+                          paymentMethod === "mpesa"
+                            ? "border-primary-500 bg-primary-50"
+                            : "border-neutral-200 hover:border-neutral-300"
                         }`}
-                        onClick={() => setValue('paymentMethod', 'mpesa')}
+                        onClick={() => setValue("paymentMethod", "mpesa")}
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
                       >
                         <div className="flex items-center space-x-4">
                           <input
                             type="radio"
-                            {...register('paymentMethod')}
+                            {...register("paymentMethod")}
                             value="mpesa"
                             className="w-4 h-4 text-primary-500"
                           />
@@ -384,8 +427,12 @@ const Checkout: React.FC = () => {
                               <Smartphone className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                              <h3 className="font-semibold text-neutral-800">M-Pesa</h3>
-                              <p className="text-sm text-neutral-600">Pay with your mobile money</p>
+                              <h3 className="font-semibold text-neutral-800">
+                                M-Pesa
+                              </h3>
+                              <p className="text-sm text-neutral-600">
+                                Pay with your mobile money
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -404,8 +451,12 @@ const Checkout: React.FC = () => {
                               <CreditCard className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                              <h3 className="font-semibold text-neutral-800">Credit/Debit Card</h3>
-                              <p className="text-sm text-neutral-600">Coming soon</p>
+                              <h3 className="font-semibold text-neutral-800">
+                                Credit/Debit Card
+                              </h3>
+                              <p className="text-sm text-neutral-600">
+                                Coming soon
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -413,11 +464,11 @@ const Checkout: React.FC = () => {
                     </div>
 
                     {/* M-Pesa Number Input */}
-                    {paymentMethod === 'mpesa' && (
+                    {paymentMethod === "mpesa" && (
                       <motion.div
                         className="mb-8"
                         initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
+                        animate={{ opacity: 1, height: "auto" }}
                         transition={{ duration: 0.3 }}
                       >
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -427,13 +478,17 @@ const Checkout: React.FC = () => {
                           <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
                           <input
                             type="tel"
-                            {...register('mpesaNumber')}
-                            className={`input-field pl-10 ${errors.mpesaNumber ? 'border-error-500' : ''}`}
+                            {...register("mpesaNumber")}
+                            className={`input-field pl-10 ${
+                              errors.mpesaNumber ? "border-error-500" : ""
+                            }`}
                             placeholder="254700123456"
                           />
                         </div>
                         {errors.mpesaNumber && (
-                          <p className="text-error-500 text-sm mt-1">{errors.mpesaNumber.message}</p>
+                          <p className="text-error-500 text-sm mt-1">
+                            {errors.mpesaNumber.message}
+                          </p>
                         )}
                         <p className="text-sm text-neutral-600 mt-2">
                           You will receive an M-Pesa prompt on this number
@@ -482,14 +537,19 @@ const Checkout: React.FC = () => {
                     {/* Order Items */}
                     <div className="space-y-4 mb-8">
                       {items.map((item) => (
-                        <div key={item.id} className="flex items-center space-x-4 p-4 bg-neutral-50 rounded-card">
+                        <div
+                          key={item.id}
+                          className="flex items-center space-x-4 p-4 bg-neutral-50 rounded-card"
+                        >
                           <img
                             src={item.image}
                             alt={item.name}
                             className="w-16 h-16 object-cover rounded-card"
                           />
                           <div className="flex-1">
-                            <h3 className="font-semibold text-neutral-800">{item.name}</h3>
+                            <h3 className="font-semibold text-neutral-800">
+                              {item.name}
+                            </h3>
                             <p className="text-sm text-neutral-600">
                               {item.quantity} × KSH {item.price}
                             </p>
@@ -505,26 +565,36 @@ const Checkout: React.FC = () => {
 
                     {/* Delivery Information Summary */}
                     <div className="bg-neutral-50 rounded-card p-4 mb-8">
-                      <h3 className="font-semibold text-neutral-800 mb-3">Delivery Information</h3>
+                      <h3 className="font-semibold text-neutral-800 mb-3">
+                        Delivery Information
+                      </h3>
                       <div className="text-sm text-neutral-600 space-y-1">
-                        <p>{watch('firstName')} {watch('lastName')}</p>
-                        <p>{watch('email')}</p>
-                        <p>{watch('phone')}</p>
-                        <p>{watch('address')}</p>
-                        <p>{watch('city')}, {watch('postalCode')}</p>
+                        <p>
+                          {watch("firstName")} {watch("lastName")}
+                        </p>
+                        <p>{watch("email")}</p>
+                        <p>{watch("phone")}</p>
+                        <p>{watch("address")}</p>
+                        <p>
+                          {watch("city")}, {watch("postalCode")}
+                        </p>
                       </div>
                     </div>
 
                     {/* Payment Method Summary */}
                     <div className="bg-neutral-50 rounded-card p-4 mb-8">
-                      <h3 className="font-semibold text-neutral-800 mb-3">Payment Method</h3>
+                      <h3 className="font-semibold text-neutral-800 mb-3">
+                        Payment Method
+                      </h3>
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                           <Smartphone className="w-4 h-4 text-white" />
                         </div>
                         <div>
                           <p className="font-medium text-neutral-800">M-Pesa</p>
-                          <p className="text-sm text-neutral-600">{watch('mpesaNumber')}</p>
+                          <p className="text-sm text-neutral-600">
+                            {watch("mpesaNumber")}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -568,7 +638,7 @@ const Checkout: React.FC = () => {
 
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            <motion.div 
+            <motion.div
               className="card sticky top-24"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -606,7 +676,9 @@ const Checkout: React.FC = () => {
 
                 <div className="border-t border-neutral-200 pt-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold text-neutral-800">Total</span>
+                    <span className="text-lg font-semibold text-neutral-800">
+                      Total
+                    </span>
                     <span className="text-2xl font-bold text-primary-500">
                       KSH {total.toFixed(2)}
                     </span>

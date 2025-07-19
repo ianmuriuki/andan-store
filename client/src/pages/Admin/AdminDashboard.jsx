@@ -14,7 +14,7 @@ import {
   MoreVertical
 } from 'lucide-react';
 
-const AdminDashboard: React.FC = () => {
+const AdminDashboard = () => {
   const stats = [
     {
       title: 'Total Revenue',
@@ -124,7 +124,7 @@ const AdminDashboard: React.FC = () => {
     },
   ];
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';

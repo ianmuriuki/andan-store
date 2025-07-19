@@ -18,44 +18,10 @@ import {
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  images: string[];
-  category: string;
-  rating: number;
-  reviews: number;
-  stock: number;
-  unit: string;
-  badge?: string;
-  discount?: number;
-  description: string;
-  longDescription: string;
-  nutritionalInfo?: {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-  };
-  ingredients?: string[];
-  benefits?: string[];
-}
-
-interface Review {
-  id: string;
-  user: string;
-  rating: number;
-  comment: string;
-  date: string;
-  verified: boolean;
-}
-
-const ProductDetails: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
+const ProductDetails = () => {
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('description');
@@ -66,7 +32,7 @@ const ProductDetails: React.FC = () => {
 
   useEffect(() => {
     // Mock product data
-    const mockProduct: Product = {
+    const mockProduct = {
       id: id || '1',
       name: 'Fresh Organic Apples',
       price: 299,
@@ -101,7 +67,7 @@ const ProductDetails: React.FC = () => {
       ]
     };
 
-    const mockReviews: Review[] = [
+    const mockReviews = [
       {
         id: '1',
         user: 'Sarah M.',
@@ -151,7 +117,7 @@ const ProductDetails: React.FC = () => {
     }
   };
 
-  const handleQuantityChange = (change: number) => {
+  const handleQuantityChange = (change) => {
     const newQuantity = quantity + change;
     if (newQuantity >= 1 && newQuantity <= (product?.stock || 1)) {
       setQuantity(newQuantity);

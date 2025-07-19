@@ -15,29 +15,10 @@ import {
   Search,
   Filter
 } from 'lucide-react';
+import PropTypes from 'prop-types';
 
-interface OrderItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  date: string;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  items: OrderItem[];
-  total: number;
-  deliveryAddress: string;
-  estimatedDelivery?: string;
-  trackingNumber?: string;
-}
-
-const Orders: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+const Order = () => {
+  const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -46,7 +27,7 @@ const Orders: React.FC = () => {
 
   useEffect(() => {
     // Mock orders data
-    const mockOrders: Order[] = [
+    const mockOrders = [
       {
         id: '1',
         orderNumber: 'ORD-2024-001',
@@ -124,7 +105,7 @@ const Orders: React.FC = () => {
     }, 1000);
   }, []);
 
-  const getStatusColor = (status: Order['status']) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
@@ -143,7 +124,21 @@ const Orders: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (status: Order['status']) => {
+  /**
+   * Given a status string, returns a Lucide icon component.
+   * Maps statuses to icons as follows:
+   * - pending: <Clock />
+   * - confirmed: <CheckCircle />
+   * - processing: <Package />
+   * - shipped: <Truck />
+   * - delivered: <CheckCircle />
+   * - cancelled: <X />
+   * - default: <Package />
+   * @param {string} status
+   * @returns {JSX.Element}
+   */
+  const getStatusIcon = (status) => {
+  
     switch (status) {
       case 'pending':
         return <Clock className="w-4 h-4" />;
@@ -169,7 +164,7 @@ const Orders: React.FC = () => {
     return matchesStatus && matchesSearch;
   });
 
-  const handleViewOrder = (order: Order) => {
+  const handleViewOrder = (order) => {
     setSelectedOrder(order);
     setShowOrderDetails(true);
   };

@@ -22,9 +22,9 @@ const schema = yup.object({
   terms: yup.boolean().oneOf([true], 'You must accept the terms and conditions'),
 });
 
-type FormData = yup.InferType<typeof schema>;
 
-const Register: React.FC = () => {
+
+const Register  = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +42,7 @@ const Register: React.FC = () => {
 
   const password = watch('password');
 
-  const getPasswordStrength = (password: string) => {
+  const getPasswordStrength = (password) => {
     if (!password) return { strength: 0, label: '', color: '' };
     
     let strength = 0;
@@ -64,7 +64,7 @@ const Register: React.FC = () => {
 
   const passwordStrength = getPasswordStrength(password || '');
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data) => {
     setIsLoading(true);
     try {
       await registerUser({

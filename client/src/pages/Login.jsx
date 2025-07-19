@@ -12,9 +12,8 @@ const schema = yup.object({
   password: yup.string().required('Password is required'),
 });
 
-type FormData = yup.InferType<typeof schema>;
 
-const Login: React.FC = () => {
+const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -31,7 +30,7 @@ const Login: React.FC = () => {
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data) => {
     setIsLoading(true);
     try {
       await login(data.email, data.password);

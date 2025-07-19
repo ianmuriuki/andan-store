@@ -44,20 +44,7 @@ const addressSchema = yup.object({
   zipCode: yup.string().required('ZIP code is required'),
 });
 
-type ProfileFormData = yup.InferType<typeof profileSchema>;
-type PasswordFormData = yup.InferType<typeof passwordSchema>;
-type AddressFormData = yup.InferType<typeof addressSchema>;
-
-interface Address {
-  id: string;
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  isDefault: boolean;
-}
-
-const Profile: React.FC = () => {
+const Profile = () => {
   const { user, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
@@ -67,7 +54,7 @@ const Profile: React.FC = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [addresses, setAddresses] = useState<Address[]>([
+  const [addresses, setAddresses] = useState>([
     {
       id: '1',
       street: '123 Main Street, Apt 4B',
@@ -109,7 +96,7 @@ const Profile: React.FC = () => {
     { id: 'security', label: 'Security', icon: Lock },
   ];
 
-  const onProfileSubmit = async (data: ProfileFormData) => {
+  const onProfileSubmit = async (data) => {
     try {
       await updateUser(data);
       setIsEditing(false);
@@ -118,7 +105,7 @@ const Profile: React.FC = () => {
     }
   };
 
-  const onPasswordSubmit = async (data: PasswordFormData) => {
+  const onPasswordSubmit = async (data) => {
     try {
       // Simulate password change
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -130,7 +117,7 @@ const Profile: React.FC = () => {
     }
   };
 
-  const onAddressSubmit = (data: AddressFormData) => {
+  const onAddressSubmit = (data) => {
     if (editingAddress) {
       // Update existing address
       setAddresses(addresses.map(addr => 
@@ -141,7 +128,7 @@ const Profile: React.FC = () => {
       toast.success('Address updated successfully!');
     } else {
       // Add new address
-      const newAddress: Address = {
+      const newAddress = {
         id: Date.now().toString(),
         ...data,
         isDefault: addresses.length === 0,
@@ -155,20 +142,20 @@ const Profile: React.FC = () => {
     addressForm.reset();
   };
 
-  const handleEditAddress = (address: Address) => {
+  const handleEditAddress = (addres) => {
     setEditingAddress(address);
     addressForm.reset(address);
     setShowAddressForm(true);
   };
 
-  const handleDeleteAddress = (id: string) => {
+  const handleDeleteAddress = (id) => {
     if (window.confirm('Are you sure you want to delete this address?')) {
       setAddresses(addresses.filter(addr => addr.id !== id));
       toast.success('Address deleted successfully!');
     }
   };
 
-  const handleSetDefaultAddress = (id: string) => {
+  const handleSetDefaultAddress = (id) => {
     setAddresses(addresses.map(addr => ({
       ...addr,
       isDefault: addr.id === id,

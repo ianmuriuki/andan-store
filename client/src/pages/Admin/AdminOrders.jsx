@@ -1,21 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, Search, Filter, Download, MoreVertical, Package, Truck, CheckCircle } from 'lucide-react';
+import PropTypes from 'prop-types';
 
-interface Order {
-  id: string;
-  customer: string;
-  email: string;
-  total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  date: string;
-  items: number;
-  paymentMethod: string;
-  deliveryAddress: string;
-}
 
-const AdminOrders: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([
+const AdminOrders = () => {
+  const [orders, setOrders] = useState([
     {
       id: 'ORD001',
       customer: 'John Doe',
@@ -64,7 +54,7 @@ const AdminOrders: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
   const statusOptions = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
@@ -77,7 +67,7 @@ const AdminOrders: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status: Order['status']) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
@@ -94,7 +84,7 @@ const AdminOrders: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (status: Order['status']) => {
+  const getStatusIcon = (status) => {
     switch (status) {
       case 'pending':
         return <Package className="w-4 h-4" />;
@@ -109,13 +99,13 @@ const AdminOrders: React.FC = () => {
     }
   };
 
-  const handleStatusUpdate = (orderId: string, newStatus: Order['status']) => {
+  const handleStatusUpdate = (orderId, newStatus) => {
     setOrders(orders.map(order => 
       order.id === orderId ? { ...order, status: newStatus } : order
     ));
   };
 
-  const handleViewOrder = (order: Order) => {
+  const handleViewOrder = (order) => {
     setSelectedOrder(order);
     setShowModal(true);
   };
@@ -275,17 +265,25 @@ const AdminOrders: React.FC = () => {
                       KSH {order.total.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <select
-                        value={order.status}
-                        onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
-                        className={`px-3 py-1 text-xs font-medium rounded-full border-none focus:ring-2 focus:ring-primary-500 ${getStatusColor(order.status)}`}
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                          {getStatusIcon(order.status)}
+                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </span>
+                        <select
+                          value={order.status}
+                          onChange={e => handleStatusUpdate(order.id, e.target.value)}
+                          className="ml-2 border rounded px-2 py-1 text-xs"
+                        >
+                          {statusOptions
+                            .filter(opt => opt !== 'All')
+                            .map(opt => (
+                              <option key={opt} value={opt.toLowerCase()}>
+                                {opt}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
                       {order.date}
@@ -452,6 +450,16 @@ const AdminOrders: React.FC = () => {
       </AnimatePresence>
     </div>
   );
+};
+
+const Order = ({ id, status, items }) => {
+  // component logic
+};
+
+Order.propTypes = {
+  id: PropTypes.string.isRequired,
+  status: PropTypes.string.isRequired,
+  items: PropTypes.array.isRequired,
 };
 
 export default AdminOrders;
