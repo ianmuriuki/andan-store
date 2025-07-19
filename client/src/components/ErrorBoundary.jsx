@@ -1,33 +1,29 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import PropTypes from 'prop-types';
 
-interface Props {
-  children: ReactNode;
-}
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+    };
+  }
 
-interface State {
-  hasError: boolean;
-  error?: Error;
-}
-
-class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false
-  };
-
-  public static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error) {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error, errorInfo) {
     console.error('Uncaught error:', error, errorInfo);
   }
 
-  private handleReload = () => {
+  handleReload = () => {
     window.location.reload();
   };
 
-  public render() {
+  render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
@@ -35,23 +31,23 @@ class ErrorBoundary extends Component<Props, State> {
             <div className="w-16 h-16 bg-error-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertTriangle className="w-8 h-8 text-error-500" />
             </div>
-            
+
             <h1 className="text-heading text-2xl font-bold text-neutral-800 mb-4">
               Oops! Something went wrong
             </h1>
-            
+
             <p className="text-body text-neutral-600 mb-8">
               We're sorry, but something unexpected happened. Please try refreshing the page.
             </p>
-            
+
             <button
               onClick={this.handleReload}
-              className="btn-primary w-full"
+              className="btn-primary w-full flex items-center justify-center gap-2"
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <RefreshCw className="w-4 h-4" />
               Refresh Page
             </button>
-            
+
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-6 text-left">
                 <summary className="cursor-pointer text-sm text-neutral-500 hover:text-neutral-700">

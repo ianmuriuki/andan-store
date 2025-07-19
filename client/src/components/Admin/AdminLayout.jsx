@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import AdminSidebar from './AdminSidebar';
 import AdminHeader from './AdminHeader';
 
-const AdminLayout: React.FC = () => {
+const AdminLayout = () => {
   return (
     <div className="min-h-screen bg-neutral-100">
       <AdminHeader />

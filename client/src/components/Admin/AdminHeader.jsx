@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Search, User, Settings, LogOut, Home } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
-const AdminHeader: React.FC = () => {
+const AdminHeader = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { user, logout } = useAuth();
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e) => {
     e.preventDefault();
     // Implement search functionality
     console.log('Search:', searchQuery);

@@ -3,12 +3,10 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { Loader2, Shield } from 'lucide-react';
+import PropTypes from 'prop-types';
 
-interface AdminRouteProps {
-  children: React.ReactNode;
-}
 
-const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
+const AdminRoute = ({ children }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
@@ -68,6 +66,10 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   }
 
   return <>{children}</>;
+};
+
+AdminRoute.propTypes = {
+  children: PropTypes.node.isRequired,
 };
 
 export default AdminRoute;

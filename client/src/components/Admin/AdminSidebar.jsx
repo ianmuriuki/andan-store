@@ -14,7 +14,7 @@ import {
   FileText
 } from 'lucide-react';
 
-const AdminSidebar: React.FC = () => {
+const AdminSidebar = () => {
   const location = useLocation();
 
   const menuItems = [

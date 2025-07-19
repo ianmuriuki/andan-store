@@ -14,7 +14,7 @@ import {
   Clock
 } from 'lucide-react';
 
-const Footer: React.FC = () => {
+const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
