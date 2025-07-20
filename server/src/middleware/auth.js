@@ -1,12 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User, IUser } from '../models/User.js';
+import { User } from '../models/User.js';
 
-export interface AuthRequest extends Request {
-  user?: IUser;
-}
-
-export const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
@@ -17,7 +12,7 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
 
     if (!user) {
@@ -37,7 +32,7 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
   }
 };
 
-export const adminAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const adminAuth = async (req, res, next) => {
   try {
     await auth(req, res, () => {
       if (req.user?.role !== 'admin') {

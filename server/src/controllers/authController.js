@@ -1,26 +1,24 @@
-import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { User } from '../models/User.js';
 import { sendEmail } from '../utils/sendEmail.js';
-import { AuthRequest } from '../middleware/auth.js';
 
 // Generate JWT token
-const generateToken = (id: string): string => {
-  return jwt.sign({ id }, process.env.JWT_SECRET!, {
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 };
 
 // Generate refresh token
-const generateRefreshToken = (id: string): string => {
-  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET!, {
+const generateRefreshToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   });
 };
 
 // Register user
-export const register = async (req: Request, res: Response) => {
+export const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, phone } = req.body;
 
@@ -67,7 +65,7 @@ export const register = async (req: Request, res: Response) => {
         createdAt: user.createdAt
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({
       success: false,
@@ -78,7 +76,7 @@ export const register = async (req: Request, res: Response) => {
 };
 
 // Login user
-export const login = async (req: Request, res: Response) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -125,7 +123,7 @@ export const login = async (req: Request, res: Response) => {
         createdAt: user.createdAt
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
@@ -136,14 +134,14 @@ export const login = async (req: Request, res: Response) => {
 };
 
 // Logout user
-export const logout = async (req: AuthRequest, res: Response) => {
+export const logout = async (req, res) => {
   try {
     // In a production app, you might want to blacklist the token
     res.json({
       success: true,
       message: 'Logout successful'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Logout error:', error);
     res.status(500).json({
       success: false,
@@ -154,7 +152,7 @@ export const logout = async (req: AuthRequest, res: Response) => {
 };
 
 // Get current user
-export const getMe = async (req: AuthRequest, res: Response) => {
+export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user?.id).populate('addresses');
     
@@ -183,7 +181,7 @@ export const getMe = async (req: AuthRequest, res: Response) => {
         updatedAt: user.updatedAt
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({
       success: false,
@@ -194,7 +192,7 @@ export const getMe = async (req: AuthRequest, res: Response) => {
 };
 
 // Update user profile
-export const updateProfile = async (req: AuthRequest, res: Response) => {
+export const updateProfile = async (req, res) => {
   try {
     const { firstName, lastName, phone } = req.body;
 
@@ -228,7 +226,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
         updatedAt: user.updatedAt
       }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({
       success: false,
@@ -239,7 +237,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
 };
 
 // Change password
-export const changePassword = async (req: AuthRequest, res: Response) => {
+export const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
@@ -268,7 +266,7 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
       success: true,
       message: 'Password changed successfully'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Change password error:', error);
     res.status(500).json({
       success: false,
@@ -279,7 +277,7 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
 };
 
 // Forgot password
-export const forgotPassword = async (req: Request, res: Response) => {
+export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -294,11 +292,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Save reset token (you might want to add these fields to the User model)
-    // user.passwordResetToken = resetToken;
-    // user.passwordResetExpires = resetTokenExpiry;
-    // await user.save();
 
     // Send email
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
@@ -327,7 +320,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         message: 'Error sending password reset email'
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({
       success: false,
@@ -338,7 +331,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
 };
 
 // Reset password
-export const resetPassword = async (req: Request, res: Response) => {
+export const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;
 
@@ -348,7 +341,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       success: true,
       message: 'Password reset successful'
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({
       success: false,
@@ -359,7 +352,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 };
 
 // Refresh token
-export const refreshToken = async (req: Request, res: Response) => {
+export const refreshToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
 
@@ -371,7 +364,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     }
 
     // Verify refresh token
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as { id: string };
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     
     const user = await User.findById(decoded.id);
     if (!user) {
@@ -390,7 +383,7 @@ export const refreshToken = async (req: Request, res: Response) => {
       token: newToken,
       refreshToken: newRefreshToken
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Refresh token error:', error);
     res.status(401).json({
       success: false,

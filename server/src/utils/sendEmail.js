@@ -1,13 +1,6 @@
 import nodemailer from 'nodemailer';
 
-interface EmailOptions {
-  to: string;
-  subject: string;
-  text?: string;
-  html?: string;
-}
-
-export const sendEmail = async (options: EmailOptions) => {
+export const sendEmail = async (options) => {
   // Create transporter
   const transporter = nodemailer.createTransporter({
     host: process.env.SMTP_HOST,
