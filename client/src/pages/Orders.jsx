@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-const Order = () => {
+const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);

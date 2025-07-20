@@ -16,9 +16,13 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useCart } from "../contexts/CartContext";
+import { useFeaturedProducts } from "../hooks/useProducts";
+// import LoadingSpinner from "../components/LoadingSpinner"; // Uncomment if you have a LoadingSpinner component
 
 const Home = () => {
+  const { featuredProductsData, isLoading, error } = useFeaturedProducts();
   const { addToCart } = useCart();
+  // const featuredProducts = featuredProductsData?.data || []; if (isLoading) { return <LoadingSpinner />; } 
   const heroRef = useRef(null);
   const featuresRef = useRef(null);
   const categoriesRef = useRef(null);

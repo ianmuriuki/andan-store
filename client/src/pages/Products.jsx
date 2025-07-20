@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useProducts, useSearchProducts } from "../hooks/useProducts";
 import {
   Search,
   Filter,
@@ -17,6 +18,17 @@ import { useCart } from "../contexts/CartContext";
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [filters, setFilters] = useState({
+    category: searchParams.get("category") || "",
+    search: searchParams.get("search") || "",
+    minPrice: 0,
+    maxPrice: 5000,
+    page: 1,
+    limit: 12,
+  });
+  const { data: productsData, isLoading, error } = useProducts(filters);
+  const product = productsData?.data || [];
+  const pagination = productsData?.pagination || {};
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState(
@@ -27,9 +39,9 @@ const Products = () => {
   );
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [sortBy, setSortBy] = useState("name");
-  const [viewMode, setViewMode] = (useState < "grid") | ("list" > "grid");
+  const [viewMode, setViewMode] = useState("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [setIsLoading] = useState(true);
 
   const { addToCart } = useCart();
 
@@ -57,7 +69,7 @@ const Products = () => {
 
   // Mock products data
   useEffect(() => {
-    const mockProduct = [
+    const mockProducts = [
       {
         id: "1",
         name: "Fresh Organic Apples",
@@ -202,7 +214,7 @@ const Products = () => {
     setFilteredProducts(filtered);
   }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
 
-  const handleAddToCart = (produc) => {
+  const handleAddToCart = (product) => {
     addToCart({
       id: product.id,
       name: product.name,

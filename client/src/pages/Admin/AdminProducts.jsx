@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit, Trash2, Search, Filter, Eye, MoreVertical } from 'lucide-react';
 
-i
+
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([
