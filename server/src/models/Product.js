@@ -235,7 +235,6 @@ productSchema.index({ rating: -1 });
 productSchema.index({ salesCount: -1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ isFeatured: 1, isActive: 1 });
-productSchema.index({ sku: 1 });
 
 // Virtual for discounted price
 productSchema.virtual("discountedPrice").get(function () {
