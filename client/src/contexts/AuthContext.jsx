@@ -133,6 +133,7 @@ export const AuthProvider = ({ children }) => {
     updateUser,
     isLoading,
     isAuthenticated: !!user,
+    fetchUser,
   };
 
   return (

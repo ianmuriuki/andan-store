@@ -42,6 +42,11 @@ const Login = () => {
     }
   };
 
+  // Google OAuth handler
+  const handleGoogleAuth = () => {
+    window.location.href = 'http://localhost:5000/api/auth/google';
+  };
+
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
       <motion.div
@@ -172,6 +177,7 @@ const Login = () => {
 
           {/* Google Sign In */}
           <motion.button
+            onClick={handleGoogleAuth}
             className="w-full flex items-center justify-center space-x-3 py-3 px-4 border border-neutral-200 rounded-button hover:bg-neutral-50 transition-colors duration-200"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

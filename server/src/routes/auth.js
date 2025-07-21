@@ -1,3 +1,41 @@
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { User } from '../models/User.js'; // adjust path as needed
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+// ADD THESE LINES HERE:
+// console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
+// console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET);
+
+// Google Strategy
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: "/api/auth/google/callback"
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    let user = await User.findOne({ email: profile.emails[0].value });
+    if (!user) {
+      user = await User.create({
+        firstName: profile.name.givenName || 'Google',
+        lastName: profile.name.familyName || 'User',
+        email: profile.emails[0].value,
+        avatar: profile.photos[0].value,
+        isVerified: true,
+        password: Math.random().toString(36).slice(-8) // random password
+      });
+    }
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
+}));
+
+// Google OAuth routes
 import express from 'express';
 import { body } from 'express-validator';
 import {
@@ -107,5 +145,17 @@ router.put('/change-password', auth, changePasswordValidation, validate, changeP
 router.post('/forgot-password', forgotPasswordValidation, validate, forgotPassword);
 router.post('/reset-password', resetPasswordValidation, validate, resetPassword);
 router.post('/refresh-token', refreshToken);
+
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/' }),
+  async (req, res) => {
+    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
+    const refreshToken = jwt.sign({ id: req.user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d' });
+    // Redirect to frontend with tokens
+    res.redirect(`${process.env.CLIENT_URL}/auth/google/callback?token=${token}&refresh=${refreshToken}`);
+  }
+);
 
 export default router;
