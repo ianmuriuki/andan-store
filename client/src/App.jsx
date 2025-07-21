@@ -11,6 +11,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AuthCallback from './pages/AuthCallback';
 import Profile from './pages/Profile';
 import Orders from './pages/Orders';
 import AdminLayout from './components/Admin/AdminLayout';
@@ -64,6 +65,7 @@ function App() {
                   <Route path="cart" element={<Cart />} />
                   <Route path="login" element={<Login />} />
                   <Route path="register" element={<Register />} />
+                  <Route path="/auth/google/callback" element={<AuthCallback />} />
                   
                   {/* Protected Routes */}
                   <Route path="checkout" element={

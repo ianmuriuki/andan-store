@@ -219,6 +219,156 @@ export const AuthProvider = ({ children }) => {
 };
 ```
 
+## Google OAuth Integration
+
+### 1. Install Google OAuth Library
+```bash
+# Client side
+npm install @google-cloud/oauth2
+
+# Server side  
+npm install passport passport-google-oauth20
+```
+
+### 2. Server-Side Google OAuth Routes
+```javascript
+// routes/auth.js
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+
+// Configure Google Strategy
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: "/api/auth/google/callback"
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    // Check if user exists
+    let user = await User.findOne({ email: profile.emails[0].value });
+    
+    if (user) {
+      return done(null, user);
+    }
+    
+    // Create new user
+    user = await User.create({
+      firstName: profile.name.givenName,
+      lastName: profile.name.familyName,
+      email: profile.emails[0].value,
+      avatar: profile.photos[0].value,
+      isVerified: true,
+      // Generate a random password for OAuth users
+      password: Math.random().toString(36).slice(-8)
+    });
+    
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
+}));
+
+// Routes
+router.get('/google', passport.authenticate('google', {
+  scope: ['profile', 'email']
+}));
+
+router.get('/google/callback', 
+  passport.authenticate('google', { session: false }),
+  async (req, res) => {
+    try {
+      const token = generateToken(req.user._id);
+      const refreshToken = generateRefreshToken(req.user._id);
+      
+      // Redirect to frontend with token
+      res.redirect(`${process.env.CLIENT_URL}/auth/success?token=${token}&refresh=${refreshToken}`);
+    } catch (error) {
+      res.redirect(`${process.env.CLIENT_URL}/auth/error`);
+    }
+  }
+);
+```
+
+### 3. Client-Side Google OAuth Button
+```javascript
+// components/GoogleAuthButton.jsx
+import React from 'react';
+
+const GoogleAuthButton = ({ onSuccess, onError }) => {
+  const handleGoogleAuth = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+  };
+
+  return (
+    <button
+      onClick={handleGoogleAuth}
+      className="w-full flex items-center justify-center space-x-3 py-3 px-4 border border-neutral-200 rounded-button hover:bg-neutral-50 transition-colors duration-200"
+    >
+      <svg className="w-5 h-5" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      <span className="font-medium text-neutral-700">Continue with Google</span>
+    </button>
+  );
+};
+
+export default GoogleAuthButton;
+```
+
+### 4. Handle OAuth Callback
+```javascript
+// pages/AuthCallback.jsx
+import React, { useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import Cookies from 'js-cookie';
+
+const AuthCallback = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { fetchUser } = useAuth();
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const refreshToken = searchParams.get('refresh');
+    const error = searchParams.get('error');
+
+    if (error) {
+      toast.error('Authentication failed');
+      navigate('/login');
+      return;
+    }
+
+    if (token) {
+      Cookies.set('token', token, { expires: 7 });
+      if (refreshToken) {
+        Cookies.set('refreshToken', refreshToken, { expires: 30 });
+      }
+      
+      fetchUser().then(() => {
+        toast.success('Successfully signed in with Google!');
+        navigate('/');
+      });
+    } else {
+      navigate('/login');
+    }
+  }, [searchParams, navigate, fetchUser]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+        <p>Completing authentication...</p>
+      </div>
+    </div>
+  );
+};
+
+export default AuthCallback;
+```
+
 ## Security Best Practices
 
 ### 1. Password Requirements
@@ -411,4 +561,4 @@ if (process.env.NODE_ENV === 'development') {
 }
 ```
 
-This authentication setup provides a secure, scalable foundation for the Andan Grocery E-Commerce system with proper token management, OAuth integration, and security best practices.
+This authentication setup provides a secure, scalable foundation for the Andan Grocery E-Commerce system with proper token management, OAuth integration, and security best practices.V
