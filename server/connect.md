@@ -35,7 +35,7 @@ Update `server/.env`:
 MONGODB_URI=mongodb://localhost:27017/andan_grocery
 
 # MongoDB Atlas
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/andan_grocery?retryWrites=true&w=majority
+MONGODB_URI="your mongodb uri"
 ```
 
 ### 3. Database Seeding
