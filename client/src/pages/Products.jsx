@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useProducts, useSearchProducts } from "../hooks/useProducts";
+import { useProducts } from "../hooks/useProducts";
 import {
   Search,
   Filter,
@@ -25,23 +25,18 @@ const Products = () => {
     maxPrice: 5000,
     page: 1,
     limit: 12,
+    sortBy: "name",
+    sortOrder: "asc"
   });
   const { data: productsData, isLoading, error } = useProducts(filters);
-  const product = productsData?.data || [];
+  const products = productsData?.data || [];
   const pagination = productsData?.pagination || {};
-  const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(
-    searchParams.get("search") || ""
-  );
-  const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || ""
-  );
+  const [searchTerm, setSearchTerm] = useState(filters.search);
+  const [selectedCategory, setSelectedCategory] = useState(filters.category);
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [sortBy, setSortBy] = useState("name");
   const [viewMode, setViewMode] = useState("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [setIsLoading] = useState(true);
 
   const { addToCart } = useCart();
 
@@ -67,159 +62,42 @@ const Products = () => {
     { value: "newest", label: "Newest First" },
   ];
 
-  // Mock products data
+  // Update filters and refetch products when search/category/price/sort changes
   useEffect(() => {
-    const mockProducts = [
-      {
-        id: "1",
-        name: "Fresh Organic Apples",
-        price: 299,
-        originalPrice: 350,
-        image:
-          "https://images.pexels.com/photos/102104/pexels-photo-102104.jpeg?auto=compress&cs=tinysrgb&w=600",
-        category: "Fruits",
-        rating: 4.8,
-        reviews: 124,
-        stock: 50,
-        unit: "kg",
-        badge: "Organic",
-        discount: 15,
-        description:
-          "Fresh, crisp organic apples sourced directly from local farms.",
-      },
-      {
-        id: "2",
-        name: "Farm Fresh Milk",
-        price: 120,
-        image:
-          "https://images.pexels.com/photos/248412/pexels-photo-248412.jpeg?auto=compress&cs=tinysrgb&w=600",
-        category: "Dairy",
-        rating: 4.9,
-        reviews: 89,
-        stock: 30,
-        unit: "liter",
-        badge: "Fresh",
-        description: "Pure, fresh milk from grass-fed cows, rich in nutrients.",
-      },
-      {
-        id: "3",
-        name: "Artisan Whole Grain Bread",
-        price: 180,
-        image:
-          "https://images.pexels.com/photos/1586947/pexels-photo-1586947.jpeg?auto=compress&cs=tinysrgb&w=600",
-        category: "Bakery",
-        rating: 4.7,
-        reviews: 67,
-        stock: 25,
-        unit: "loaf",
-        badge: "Artisan",
-        description: "Handcrafted whole grain bread baked fresh daily.",
-      },
-      {
-        id: "4",
-        name: "Fresh Baby Spinach",
-        price: 89,
-        image:
-          "https://images.pexels.com/photos/2068303/pexels-photo-2068303.jpeg?auto=compress&cs=tinysrgb&w=600",
-        category: "Vegetables",
-        rating: 4.6,
-        reviews: 45,
-        stock: 40,
-        unit: "bunch",
-        badge: "Fresh",
-        description:
-          "Tender baby spinach leaves, perfect for salads and cooking.",
-      },
-      {
-        id: "5",
-        name: "Premium Beef Steak",
-        price: 1200,
-        originalPrice: 1400,
-        image:
-          "https://images.pexels.com/photos/361184/asparagus-steak-veal-steak-veal-361184.jpeg?auto=compress&cs=tinysrgb&w=600",
-        category: "Meat",
-        rating: 4.9,
-        reviews: 156,
-        stock: 15,
-        unit: "kg",
-        badge: "Premium",
-        discount: 14,
-        description: "Premium quality beef steak, tender and flavorful.",
-      },
-      {
-        id: "6",
-        name: "Fresh Orange Juice",
-        price: 250,
-        image:
-          "https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=600",
-        category: "Beverages",
-        rating: 4.5,
-        reviews: 78,
-        stock: 35,
-        unit: "liter",
-        badge: "Fresh",
-        description: "Freshly squeezed orange juice, no preservatives added.",
-      },
-    ];
-
-    setTimeout(() => {
-      setProducts(mockProducts);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
-
-  // Filter and sort products
-  useEffect(() => {
-    let filtered = [...products];
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    let sortByValue = "name";
+    let sortOrderValue = "asc";
+    if (sortBy === "price-low") {
+      sortByValue = "price";
+      sortOrderValue = "asc";
+    } else if (sortBy === "price-high") {
+      sortByValue = "price";
+      sortOrderValue = "desc";
+    } else if (sortBy === "rating") {
+      sortByValue = "rating";
+      sortOrderValue = "desc";
+    } else if (sortBy === "newest") {
+      sortByValue = "createdAt";
+      sortOrderValue = "desc";
     }
-
-    // Category filter
-    if (selectedCategory && selectedCategory !== "All Categories") {
-      filtered = filtered.filter(
-        (product) => product.category === selectedCategory
-      );
-    }
-
-    // Price range filter
-    filtered = filtered.filter(
-      (product) =>
-        product.price >= priceRange[0] && product.price <= priceRange[1]
-    );
-
-    // Sort products
-    switch (sortBy) {
-      case "price-low":
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case "price-high":
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case "rating":
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      case "name":
-      default:
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-    }
-
-    setFilteredProducts(filtered);
-  }, [products, searchTerm, selectedCategory, priceRange, sortBy]);
+    setFilters((prev) => ({
+      ...prev,
+      search: searchTerm,
+      category: selectedCategory,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      sortBy: sortByValue,
+      sortOrder: sortOrderValue,
+      page: 1, // reset to first page on filter change
+    }));
+    // eslint-disable-next-line
+  }, [searchTerm, selectedCategory, priceRange, sortBy]);
 
   const handleAddToCart = (product) => {
     addToCart({
-      id: product.id,
+      id: product._id,
       name: product.name,
       price: product.price,
-      image: product.image,
+      image: product.images?.[0] || '',
       stock: product.stock,
       category: product.category,
       unit: product.unit,
@@ -428,14 +306,14 @@ const Products = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <p className="text-neutral-600">
-            Showing {filteredProducts.length} of {products.length} products
+            Showing {products.length} of {pagination.total || products.length} products
             {searchTerm && ` for "${searchTerm}"`}
           </p>
         </motion.div>
 
         {/* Products Grid/List */}
         <AnimatePresence mode="wait">
-          {filteredProducts.length > 0 ? (
+          {products.length > 0 ? (
             <motion.div
               className={
                 viewMode === "grid"
@@ -447,9 +325,9 @@ const Products = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              {filteredProducts.map((product, index) => (
+              {products.map((product, index) => (
                 <motion.div
-                  key={product.id}
+                  key={product._id}
                   className={
                     viewMode === "grid"
                       ? "product-card"
@@ -465,37 +343,10 @@ const Products = () => {
                       viewMode === "list" ? "md:w-48 md:flex-shrink-0" : ""
                     }`}
                   >
-                    {product.badge && (
-                      <motion.div
-                        className={`offer-badge ${
-                          product.badge === "Fresh"
-                            ? "bg-green-500"
-                            : product.badge === "Organic"
-                            ? "bg-accent-orange"
-                            : product.badge === "Premium"
-                            ? "bg-purple-500"
-                            : "bg-primary-500"
-                        }`}
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
-                      >
-                        {product.badge}
-                      </motion.div>
-                    )}
-                    {product.discount && (
-                      <motion.div
-                        className="discount-badge"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.3, delay: 0.7 + index * 0.1 }}
-                      >
-                        -{product.discount}%
-                      </motion.div>
-                    )}
-                    <Link to={`/products/${product.id}`}>
+                    {/* Badges and discounts can be added here if available from backend */}
+                    <Link to={`/products/${product._id}`}>
                       <motion.img
-                        src={product.image}
+                        src={product.images?.[0] || ''}
                         alt={product.name}
                         className={`w-full object-cover group-hover:scale-105 transition-transform duration-300 ${
                           viewMode === "grid" ? "h-48" : "h-32 md:h-full"
@@ -523,12 +374,12 @@ const Products = () => {
                           {product.rating}
                         </span>
                         <span className="text-xs text-neutral-500 ml-1">
-                          ({product.reviews})
+                          ({product.reviewCount || 0})
                         </span>
                       </div>
                     </div>
 
-                    <Link to={`/products/${product.id}`}>
+                    <Link to={`/products/${product._id}`}>
                       <h3 className="text-heading text-lg font-semibold text-neutral-800 mb-2 hover:text-primary-500 transition-colors duration-200">
                         {product.name}
                       </h3>
