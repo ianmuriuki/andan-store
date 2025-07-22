@@ -46,7 +46,7 @@ const AdminUsers = () => {
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState(null);
 
   const roleOptions = ['All', 'User', 'Admin'];
   const statusOptions = ['All', 'Active', 'Inactive'];

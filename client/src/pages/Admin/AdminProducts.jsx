@@ -1,52 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit, Trash2, Search, Filter, Eye, MoreVertical } from 'lucide-react';
+import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '../../hooks/useProducts';
 
-
+const initialForm = {
+  name: '',
+  category: '',
+  price: '',
+  stock: '',
+  unit: '',
+  description: '',
+  images: [''], // For now, single image URL
+};
 
 const AdminProducts = () => {
-  const [products, setProducts] = useState([
-    {
-      id: '1',
-      name: 'Fresh Organic Apples',
-      category: 'Fruits',
-      price: 299,
-      stock: 50,
-      image: 'https://images.pexels.com/photos/102104/pexels-photo-102104.jpeg?auto=compress&cs=tinysrgb&w=400',
-      status: 'active',
-      sales: 145,
-      rating: 4.8
-    },
-    {
-      id: '2',
-      name: 'Farm Fresh Milk',
-      category: 'Dairy',
-      price: 120,
-      stock: 30,
-      image: 'https://images.pexels.com/photos/248412/pexels-photo-248412.jpeg?auto=compress&cs=tinysrgb&w=400',
-      status: 'active',
-      sales: 89,
-      rating: 4.9
-    },
-    {
-      id: '3',
-      name: 'Whole Grain Bread',
-      category: 'Bakery',
-      price: 180,
-      stock: 0,
-      image: 'https://images.pexels.com/photos/1586947/pexels-photo-1586947.jpeg?auto=compress&cs=tinysrgb&w=400',
-      status: 'inactive',
-      sales: 67,
-      rating: 4.7
-    },
-  ]);
+  // Fetch products from backend
+  const { data, isLoading, error } = useProducts();
+  const products = data?.data || [];
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [form, setForm] = useState(initialForm);
+
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
+
+  useEffect(() => {
+    if (editingProduct) {
+      setForm({
+        name: editingProduct.name || '',
+        category: editingProduct.category || '',
+        price: editingProduct.price || '',
+        stock: editingProduct.stock || '',
+        unit: editingProduct.unit || '',
+        description: editingProduct.description || '',
+        images: editingProduct.images?.length ? editingProduct.images : [''],
+      });
+    } else {
+      setForm(initialForm);
+    }
+  }, [editingProduct, showModal]);
 
   const categories = ['All', 'Fruits', 'Vegetables', 'Dairy', 'Meat', 'Beverages', 'Bakery'];
+  const units = ['kg', 'g', 'liter', 'ml', 'piece', 'pack', 'dozen', 'bunch'];
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -61,7 +60,7 @@ const AdminProducts = () => {
 
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter(p => p.id !== id));
+      deleteProduct.mutate(id);
     }
   };
 
@@ -70,11 +69,46 @@ const AdminProducts = () => {
     setShowModal(true);
   };
 
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e) => {
+    setForm((prev) => ({ ...prev, images: [e.target.value] }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const payload = {
+      ...form,
+      price: Number(form.price),
+      stock: Number(form.stock),
+      images: form.images.filter(Boolean), // ensure no empty strings
+    };
+    if (editingProduct) {
+      updateProduct.mutate({ id: editingProduct._id, productData: payload }, {
+        onSuccess: () => setShowModal(false),
+      });
+    } else {
+      createProduct.mutate(payload, {
+        onSuccess: () => setShowModal(false),
+      });
+    }
+  };
+
   const getStockStatus = (stock) => {
     if (stock === 0) return { color: 'text-red-600', bg: 'bg-red-100', label: 'Out of Stock' };
     if (stock < 10) return { color: 'text-orange-600', bg: 'bg-orange-100', label: 'Low Stock' };
     return { color: 'text-green-600', bg: 'bg-green-100', label: 'In Stock' };
   };
+
+  if (isLoading) {
+    return <div className="p-8">Loading products...</div>;
+  }
+  if (error) {
+    return <div className="p-8 text-red-600">Error loading products.</div>;
+  }
 
   return (
     <div className="space-y-8">
@@ -104,7 +138,7 @@ const AdminProducts = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
           { label: 'Total Products', value: products.length, color: 'text-blue-600', bg: 'bg-blue-100' },
-          { label: 'Active Products', value: products.filter(p => p.status === 'active').length, color: 'text-green-600', bg: 'bg-green-100' },
+          { label: 'Active Products', value: products.filter(p => p.isActive).length, color: 'text-green-600', bg: 'bg-green-100' },
           { label: 'Low Stock', value: products.filter(p => p.stock < 10 && p.stock > 0).length, color: 'text-orange-600', bg: 'bg-orange-100' },
           { label: 'Out of Stock', value: products.filter(p => p.stock === 0).length, color: 'text-red-600', bg: 'bg-red-100' },
         ].map((stat, index) => (
@@ -209,7 +243,7 @@ const AdminProducts = () => {
                   const stockStatus = getStockStatus(product.stock);
                   return (
                     <motion.tr
-                      key={product.id}
+                      key={product._id}
                       className="hover:bg-neutral-50 transition-colors"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -219,14 +253,14 @@ const AdminProducts = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <motion.img
-                            src={product.image}
+                            src={product.images?.[0] || ''}
                             alt={product.name}
                             className="w-12 h-12 object-cover rounded-card mr-4"
                             whileHover={{ scale: 1.1 }}
                           />
                           <div>
                             <div className="text-sm font-medium text-neutral-900">{product.name}</div>
-                            <div className="text-sm text-neutral-500">ID: {product.id}</div>
+                            <div className="text-sm text-neutral-500">ID: {product._id}</div>
                           </div>
                         </div>
                       </td>
@@ -244,19 +278,19 @@ const AdminProducts = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                        {product.sales} sold
+                        {product.salesCount || 0} sold
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                          product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          product.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         }`}>
-                          {product.status}
+                          {product.isActive ? 'active' : 'inactive'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
                           <motion.button
-                            onClick={() => console.log('View product', product.id)}
+                            onClick={() => console.log('View product', product._id)}
                             className="text-neutral-600 hover:text-primary-600 transition-colors"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
@@ -272,7 +306,7 @@ const AdminProducts = () => {
                             <Edit className="w-4 h-4" />
                           </motion.button>
                           <motion.button
-                            onClick={() => handleDelete(product.id)}
+                            onClick={() => handleDelete(product._id)}
                             className="text-red-600 hover:text-red-900 transition-colors"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
@@ -328,7 +362,7 @@ const AdminProducts = () => {
                   </motion.button>
                 </div>
                 
-                <form className="space-y-6">
+                <form className="space-y-6" onSubmit={handleSubmit}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -338,7 +372,12 @@ const AdminProducts = () => {
                         type="text"
                         className="input-field"
                         placeholder="Enter product name"
-                        defaultValue={editingProduct?.name}
+                        name="name"
+                        value={form.name}
+                        onChange={handleFormChange}
+                        required
+                        minLength={2}
+                        maxLength={200}
                       />
                     </div>
                     <div>
@@ -347,7 +386,10 @@ const AdminProducts = () => {
                       </label>
                       <select
                         className="input-field"
-                        defaultValue={editingProduct?.category}
+                        name="category"
+                        value={form.category}
+                        onChange={handleFormChange}
+                        required
                       >
                         <option value="">Select category</option>
                         <option value="Fruits">Fruits</option>
@@ -359,7 +401,6 @@ const AdminProducts = () => {
                       </select>
                     </div>
                   </div>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -369,7 +410,11 @@ const AdminProducts = () => {
                         type="number"
                         className="input-field"
                         placeholder="Enter price"
-                        defaultValue={editingProduct?.price}
+                        name="price"
+                        value={form.price}
+                        onChange={handleFormChange}
+                        required
+                        min={0}
                       />
                     </div>
                     <div>
@@ -380,11 +425,33 @@ const AdminProducts = () => {
                         type="number"
                         className="input-field"
                         placeholder="Enter stock quantity"
-                        defaultValue={editingProduct?.stock}
+                        name="stock"
+                        value={form.stock}
+                        onChange={handleFormChange}
+                        required
+                        min={0}
                       />
                     </div>
                   </div>
-                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Unit
+                      </label>
+                      <select
+                        className="input-field"
+                        name="unit"
+                        value={form.unit}
+                        onChange={handleFormChange}
+                        required
+                      >
+                        <option value="">Select unit</option>
+                        {units.map((unit) => (
+                          <option key={unit} value={unit}>{unit}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-2">
                       Description
@@ -392,40 +459,49 @@ const AdminProducts = () => {
                     <textarea
                       className="input-field h-24 resize-none"
                       placeholder="Enter product description"
+                      name="description"
+                      value={form.description}
+                      onChange={handleFormChange}
+                      required
+                      minLength={10}
+                      maxLength={2000}
                     />
                   </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-2">
-                      Product Image
+                      Product Image URL
                     </label>
-                    <div className="border-2 border-dashed border-neutral-300 rounded-card p-8 text-center hover:border-primary-500 transition-colors cursor-pointer">
-                      <div className="text-neutral-500">
-                        <p>Click to upload or drag and drop</p>
-                        <p className="text-sm">PNG, JPG, GIF up to 10MB</p>
-                      </div>
-                    </div>
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="Enter image URL"
+                      name="image"
+                      value={form.images[0]}
+                      onChange={handleImageChange}
+                      required
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-neutral-200">
+                    <motion.button
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                      className="btn-ghost"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Cancel
+                    </motion.button>
+                    <motion.button
+                      type="submit"
+                      className="btn-primary"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      disabled={createProduct.isLoading || updateProduct.isLoading}
+                    >
+                      {editingProduct ? (updateProduct.isLoading ? 'Updating...' : 'Update Product') : (createProduct.isLoading ? 'Adding...' : 'Add Product')}
+                    </motion.button>
                   </div>
                 </form>
-                
-                <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-neutral-200">
-                  <motion.button
-                    onClick={() => setShowModal(false)}
-                    className="btn-ghost"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Cancel
-                  </motion.button>
-                  <motion.button
-                    onClick={() => setShowModal(false)}
-                    className="btn-primary"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {editingProduct ? 'Update Product' : 'Add Product'}
-                  </motion.button>
-                </div>
               </div>
             </motion.div>
           </motion.div>
