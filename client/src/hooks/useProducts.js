@@ -54,3 +54,48 @@ export const useAddReview = () => {
     },
   });
 };
+
+// Admin: Create product
+export const useCreateProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (productData) => productService.createProduct(productData),
+    onSuccess: () => {
+      toast.success('Product created successfully!');
+      queryClient.invalidateQueries(['products']);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to create product');
+    },
+  });
+};
+
+// Admin: Update product
+export const useUpdateProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, productData }) => productService.updateProduct(id, productData),
+    onSuccess: () => {
+      toast.success('Product updated successfully!');
+      queryClient.invalidateQueries(['products']);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to update product');
+    },
+  });
+};
+
+// Admin: Delete product
+export const useDeleteProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id) => productService.deleteProduct(id),
+    onSuccess: () => {
+      toast.success('Product deleted successfully!');
+      queryClient.invalidateQueries(['products']);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to delete product');
+    },
+  });
+};
