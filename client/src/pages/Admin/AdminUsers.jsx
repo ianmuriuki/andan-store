@@ -1,30 +1,41 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Mail, Phone, Edit, Trash2, UserPlus, MoreVertical, Shield, User } from 'lucide-react';
-import { userService } from '../../services/userService';
-import toast from 'react-hot-toast';
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  Filter,
+  Mail,
+  Phone,
+  Edit,
+  Trash2,
+  UserPlus,
+  MoreVertical,
+  Shield,
+  User,
+} from "lucide-react";
+import { userService } from "../../services/userService";
+import toast from "react-hot-toast";
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    role: 'user',
-    status: 'active',
-    password: '',
-    avatar: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    role: "user",
+    status: "active",
+    password: "",
+    avatar: "",
   });
   const [avatarFile, setAvatarFile] = useState(null);
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -39,8 +50,8 @@ const AdminUsers = () => {
       const res = await userService.getUsers();
       setUsers(res.data || []);
     } catch (err) {
-      setError('Failed to fetch users');
-      toast.error('Failed to fetch users');
+      setError("Failed to fetch users");
+      toast.error("Failed to fetch users");
     } finally {
       setLoading(false);
     }
@@ -49,28 +60,28 @@ const AdminUsers = () => {
   const handleEdit = (user) => {
     setEditingUser(user);
     setForm({
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      email: user.email || '',
-      phone: user.phone || '',
-      role: user.role || 'user',
-      status: user.status || 'active',
-      password: '',
-      avatar: user.avatar || '',
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      role: user.role || "user",
+      status: user.status || "active",
+      password: "",
+      avatar: user.avatar || "",
     });
-    setAvatarUrl(user.avatar || '');
+    setAvatarUrl(user.avatar || "");
     setAvatarFile(null);
     setShowModal(true);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (window.confirm("Are you sure you want to delete this user?")) {
       try {
         await userService.deleteUser(id);
-        toast.success('User deleted');
+        toast.success("User deleted");
         fetchUsers();
       } catch (err) {
-        toast.error('Failed to delete user');
+        toast.error("Failed to delete user");
       }
     }
   };
@@ -78,31 +89,36 @@ const AdminUsers = () => {
   const handleAddNew = () => {
     setEditingUser(null);
     setForm({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      role: 'user',
-      status: 'active',
-      password: '',
-      avatar: '',
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      role: "user",
+      status: "active",
+      password: "",
+      avatar: "",
     });
-    setAvatarUrl('');
+    setAvatarUrl("");
     setAvatarFile(null);
     setShowModal(true);
   };
 
   const handleStatusToggle = async (id) => {
-    const user = users.find(u => u._id === id);
+    const user = users.find((u) => u._id === id);
     if (!user) return;
     try {
-      await userService.updateUser(id, { status: user.status === 'active' ? 'inactive' : 'active' });
-      toast.success('User status updated');
+      await userService.updateUser(id, {
+        status: user.status === "active" ? "inactive" : "active",
+      });
+      toast.success("User status updated");
       fetchUsers();
     } catch (err) {
-      toast.error('Failed to update status');
+      toast.error("Failed to update status");
     }
   };
+
+  const roleOptions = ['admin', 'editor', 'viewer'];
+
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
@@ -112,13 +128,13 @@ const AdminUsers = () => {
       const res = await userService.uploadAvatar(file);
       if (res.success) {
         setAvatarUrl(res.filePath);
-        setForm(prev => ({ ...prev, avatar: res.filePath }));
-        toast.success('Avatar uploaded!');
+        setForm((prev) => ({ ...prev, avatar: res.filePath }));
+        toast.success("Avatar uploaded!");
       } else {
-        toast.error(res.message || 'Upload failed');
+        toast.error(res.message || "Upload failed");
       }
     } catch (err) {
-      toast.error('Upload failed');
+      toast.error("Upload failed");
     } finally {
       setUploading(false);
     }
@@ -126,7 +142,7 @@ const AdminUsers = () => {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFormSubmit = async (e) => {
@@ -136,38 +152,65 @@ const AdminUsers = () => {
       if (avatarUrl) payload.avatar = avatarUrl;
       if (editingUser) {
         await userService.updateUser(editingUser._id, payload);
-        toast.success('User updated');
+        toast.success("User updated");
       } else {
         await userService.createUser(payload);
-        toast.success('User created');
+        toast.success("User created");
       }
       setShowModal(false);
       fetchUsers();
     } catch (err) {
-      toast.error('Failed to save user');
+      toast.error("Failed to save user");
     }
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === '' || roleFilter === 'All' || user.role === roleFilter.toLowerCase();
-    const matchesStatus = statusFilter === '' || statusFilter === 'All' || user.status === statusFilter.toLowerCase();
+    const matchesRole =
+      roleFilter === "" ||
+      roleFilter === "All" ||
+      user.role === roleFilter.toLowerCase();
+    const matchesStatus =
+      statusFilter === "" ||
+      statusFilter === "All" ||
+      user.status === statusFilter.toLowerCase();
     return matchesSearch && matchesRole && matchesStatus;
   });
 
   const userStats = [
-    { label: 'Total Users', value: users.length, color: 'text-blue-600', bg: 'bg-blue-100' },
-    { label: 'Active Users', value: users.filter(u => u.status === 'active').length, color: 'text-green-600', bg: 'bg-green-100' },
-    { label: 'Admin Users', value: users.filter(u => u.role === 'admin').length, color: 'text-purple-600', bg: 'bg-purple-100' },
-    { label: 'New This Month', value: 12, color: 'text-orange-600', bg: 'bg-orange-100' },
+    {
+      label: "Total Users",
+      value: users.length,
+      color: "text-blue-600",
+      bg: "bg-blue-100",
+    },
+    {
+      label: "Active Users",
+      value: users.filter((u) => u.status === "active").length,
+      color: "text-green-600",
+      bg: "bg-green-100",
+    },
+    {
+      label: "Admin Users",
+      value: users.filter((u) => u.role === "admin").length,
+      color: "text-purple-600",
+      bg: "bg-purple-100",
+    },
+    {
+      label: "New This Month",
+      value: 12,
+      color: "text-orange-600",
+      bg: "bg-orange-100",
+    },
   ];
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <motion.div 
+      <motion.div
         className="flex items-center justify-between"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -175,7 +218,9 @@ const AdminUsers = () => {
       >
         <div>
           <h1 className="text-3xl font-bold text-neutral-800">Users</h1>
-          <p className="text-neutral-600 mt-1">Manage customer accounts and administrators</p>
+          <p className="text-neutral-600 mt-1">
+            Manage customer accounts and administrators
+          </p>
         </div>
         <motion.button
           onClick={handleAddNew}
@@ -201,8 +246,12 @@ const AdminUsers = () => {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600 font-medium">{stat.label}</p>
-                <p className="text-3xl font-bold text-neutral-800 mt-1">{stat.value}</p>
+                <p className="text-sm text-neutral-600 font-medium">
+                  {stat.label}
+                </p>
+                <p className="text-3xl font-bold text-neutral-800 mt-1">
+                  {stat.value}
+                </p>
               </div>
               <div className={`${stat.bg} p-3 rounded-card`}>
                 <div className={`w-6 h-6 ${stat.color} rounded-full`}></div>
@@ -213,7 +262,7 @@ const AdminUsers = () => {
       </div>
 
       {/* Filters */}
-      <motion.div 
+      <motion.div
         className="card"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -235,19 +284,20 @@ const AdminUsers = () => {
             onChange={(e) => setRoleFilter(e.target.value)}
             className="input-field md:w-48"
           >
-            {roleOptions.map(role => (
-              <option key={role} value={role === 'All' ? '' : role}>
-                {role}
-              </option>
-            ))}
+            {Array.isArray(roleOptions) &&
+              roleOptions.map((role) => (
+                <option key={role} value={role === "All" ? "" : role}>
+                  {role}
+                </option>
+              ))}
           </select>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="input-field md:w-48"
           >
-            {statusOptions.map(status => (
-              <option key={status} value={status === 'All' ? '' : status}>
+            {statusOptions.map((status) => (
+              <option key={status} value={status === "All" ? "" : status}>
                 {status}
               </option>
             ))}
@@ -264,7 +314,7 @@ const AdminUsers = () => {
       </motion.div>
 
       {/* Users Table */}
-      <motion.div 
+      <motion.div
         className="card overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -311,11 +361,16 @@ const AdminUsers = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {user.avatar ? (
-                          <img src={user.avatar} alt="avatar" className="w-12 h-12 rounded-full object-cover mr-4 border-2 border-primary-100" />
+                          <img
+                            src={user.avatar}
+                            alt="avatar"
+                            className="w-12 h-12 rounded-full object-cover mr-4 border-2 border-primary-100"
+                          />
                         ) : (
                           <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mr-4">
                             <span className="text-white font-semibold text-sm">
-                              {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                              {user.firstName.charAt(0)}
+                              {user.lastName.charAt(0)}
                             </span>
                           </div>
                         )}
@@ -324,20 +379,31 @@ const AdminUsers = () => {
                             {user.firstName} {user.lastName}
                           </div>
                           <div className="text-sm text-neutral-500">
-                            Joined {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : ''}
+                            Joined{" "}
+                            {user.createdAt
+                              ? new Date(user.createdAt).toLocaleDateString()
+                              : ""}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-neutral-900">{user.email}</div>
-                      <div className="text-sm text-neutral-500">{user.phone}</div>
+                      <div className="text-sm text-neutral-900">
+                        {user.email}
+                      </div>
+                      <div className="text-sm text-neutral-500">
+                        {user.phone}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                        user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {user.role === 'admin' ? (
+                      <span
+                        className={`px-3 py-1 text-xs font-medium rounded-full ${
+                          user.role === "admin"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {user.role === "admin" ? (
                           <div className="flex items-center space-x-1">
                             <Shield className="w-3 h-3" />
                             <span>Admin</span>
@@ -354,7 +420,9 @@ const AdminUsers = () => {
                       <motion.button
                         onClick={() => handleStatusToggle(user._id)}
                         className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                          user.status === 'active' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200'
+                          user.status === "active"
+                            ? "bg-green-100 text-green-800 hover:bg-green-200"
+                            : "bg-red-100 text-red-800 hover:bg-red-200"
                         }`}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -422,7 +490,7 @@ const AdminUsers = () => {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-neutral-800">
-                    {editingUser ? 'Edit User' : 'Add New User'}
+                    {editingUser ? "Edit User" : "Add New User"}
                   </h2>
                   <motion.button
                     onClick={() => setShowModal(false)}
@@ -433,31 +501,38 @@ const AdminUsers = () => {
                     ✕
                   </motion.button>
                 </div>
-                
+
                 <form onSubmit={handleFormSubmit} className="space-y-6">
                   <div className="flex flex-col items-center mb-4">
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt="avatar" className="w-20 h-20 rounded-full object-cover border-2 border-primary-100 mb-2" />
+                      <img
+                        src={avatarUrl}
+                        alt="avatar"
+                        className="w-20 h-20 rounded-full object-cover border-2 border-primary-100 mb-2"
+                      />
                     ) : (
                       <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mb-2">
                         <span className="text-white font-bold text-xl">
-                          {form.firstName.charAt(0)}{form.lastName.charAt(0)}
+                          {form.firstName.charAt(0)}
+                          {form.lastName.charAt(0)}
                         </span>
                       </div>
                     )}
                     <button
                       type="button"
                       className="btn-secondary btn-sm"
-                      onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                      onClick={() =>
+                        fileInputRef.current && fileInputRef.current.click()
+                      }
                       disabled={uploading}
                     >
-                      {uploading ? 'Uploading...' : 'Change Avatar'}
+                      {uploading ? "Uploading..." : "Change Avatar"}
                     </button>
                     <input
                       type="file"
                       accept="image/*"
                       ref={fileInputRef}
-                      style={{ display: 'none' }}
+                      style={{ display: "none" }}
                       onChange={handleAvatarChange}
                       disabled={uploading}
                     />
@@ -492,7 +567,7 @@ const AdminUsers = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-2">
                       Email Address
@@ -507,7 +582,7 @@ const AdminUsers = () => {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-2">
                       Phone Number
@@ -521,7 +596,7 @@ const AdminUsers = () => {
                       placeholder="Enter phone number"
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -552,7 +627,7 @@ const AdminUsers = () => {
                       </select>
                     </div>
                   </div>
-                  
+
                   {!editingUser && (
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-2">
@@ -570,10 +645,10 @@ const AdminUsers = () => {
                     </div>
                   )}
                   <button type="submit" className="btn-primary w-full">
-                    {editingUser ? 'Update User' : 'Add User'}
+                    {editingUser ? "Update User" : "Add User"}
                   </button>
                 </form>
-                
+
                 <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-neutral-200">
                   <motion.button
                     onClick={() => setShowModal(false)}

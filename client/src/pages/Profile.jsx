@@ -58,7 +58,7 @@ const Profile = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [addresses, setAddresses] = useState>([
+  const [addresses, setAddresses] = ([
     {
       id: '1',
       street: '123 Main Street, Apt 4B',
@@ -77,7 +77,7 @@ const Profile = () => {
     },
   ]);
 
-  const profileForm = useForm<ProfileFormData>({
+  const profileForm = useForm({
     resolver: yupResolver(profileSchema),
     defaultValues: {
       firstName: user?.firstName || '',
@@ -86,11 +86,11 @@ const Profile = () => {
     },
   });
 
-  const passwordForm = useForm<PasswordFormData>({
+  const passwordForm = useForm({
     resolver: yupResolver(passwordSchema),
   });
 
-  const addressForm = useForm<AddressFormData>({
+  const addressForm = useForm({
     resolver: yupResolver(addressSchema),
   });
 
@@ -461,7 +461,8 @@ const Profile = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {addresses.map((address, index) => (
+                    {Array.isArray(addresses) && addresses.map((address, index) => (
+
                         <motion.div
                           key={address.id}
                           className={`border-2 rounded-card p-4 transition-colors ${
