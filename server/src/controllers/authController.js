@@ -194,7 +194,7 @@ export const getMe = async (req, res) => {
 // Update user profile
 export const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, phone } = req.body;
+    const { firstName, lastName, phone, avatar } = req.body;
 
     const user = await User.findById(req.user?.id);
     if (!user) {
@@ -204,10 +204,19 @@ export const updateProfile = async (req, res) => {
       });
     }
 
+    // Prevent email change for Google-auth users
+    if (user.googleId && req.body.email && req.body.email !== user.email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google-authenticated users cannot change their email.'
+      });
+    }
+
     // Update fields
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (phone) user.phone = phone;
+    if (avatar) user.avatar = avatar; // avatar is a URL string
 
     await user.save();
 

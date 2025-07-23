@@ -17,18 +17,24 @@ export const getProducts = async (req, res) => {
     // Build filter object
     const filter = { isActive: true };
 
-    if (category) {
+    // Only add category if it's a non-empty string
+    if (category && category.trim() !== "") {
       filter.category = category;
     }
 
-    if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = parseFloat(minPrice);
-      if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
+    // Only add search if it's a non-empty string
+    if (search && search.trim() !== "") {
+      filter.$text = { $search: search };
     }
 
-    if (search) {
-      filter.$text = { $search: search };
+    // For price, explicitly check for null/undefined, not falsy
+    if (minPrice !== undefined && minPrice !== null && minPrice !== "") {
+      filter.price = filter.price || {};
+      filter.price.$gte = parseFloat(minPrice);
+    }
+    if (maxPrice !== undefined && maxPrice !== null && maxPrice !== "") {
+      filter.price = filter.price || {};
+      filter.price.$lte = parseFloat(maxPrice);
     }
 
     // Build sort object
