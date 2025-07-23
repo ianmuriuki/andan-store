@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -48,9 +48,13 @@ const Profile = () => {
   const { user, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
+  // Avatar upload state
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar || '');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [editingAddress, setEditingAddress] = useState(null);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -98,7 +102,7 @@ const Profile = () => {
 
   const onProfileSubmit = async (data) => {
     try {
-      await updateUser(data);
+      await updateUser({ ...data, avatar: avatarUrl });
       setIsEditing(false);
     } catch (error) {
       // Error handled by context
@@ -163,6 +167,35 @@ const Profile = () => {
     toast.success('Default address updated!');
   };
 
+  // Avatar upload handler
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+        },
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.success) {
+        setAvatarUrl(data.filePath);
+        toast.success('Avatar uploaded!');
+      } else {
+        toast.error(data.message || 'Upload failed');
+      }
+    } catch (err) {
+      toast.error('Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-neutral-50">
       <div className="container-main section-padding">
@@ -193,18 +226,41 @@ const Profile = () => {
               {/* Profile Avatar */}
               <div className="text-center mb-6 pb-6 border-b border-neutral-200">
                 <div className="relative inline-block">
-                  <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white font-bold text-2xl">
-                      {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-                    </span>
-                  </div>
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt="Avatar"
+                      className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-4 border-primary-100"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-white font-bold text-2xl">
+                        {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                      </span>
+                    </div>
+                  )}
                   <motion.button
+                    type="button"
                     className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full shadow-card flex items-center justify-center border-2 border-neutral-200 hover:border-primary-500 transition-colors"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
+                    onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                    disabled={uploading}
                   >
-                    <Camera className="w-4 h-4 text-neutral-600" />
+                    {uploading ? (
+                      <span className="loader w-4 h-4" />
+                    ) : (
+                      <Camera className="w-4 h-4 text-neutral-600" />
+                    )}
                   </motion.button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleAvatarChange}
+                    disabled={uploading}
+                  />
                 </div>
                 <h2 className="text-xl font-semibold text-neutral-800">
                   {user?.firstName} {user?.lastName}
