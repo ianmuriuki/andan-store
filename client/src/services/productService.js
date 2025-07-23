@@ -3,7 +3,15 @@ import api from './api';
 export const productService = {
   // Get all products with filters
   async getProducts(params = {}) {
-    const response = await api.get('/products', { params });
+    // Remove empty, null, or undefined params
+    const filteredParams = {};
+    Object.keys(params).forEach(key => {
+      if (params[key] !== "" && params[key] !== null && params[key] !== undefined) {
+        filteredParams[key] = params[key];
+      }
+    });
+
+    const response = await api.get('/products', { params: filteredParams });
     return response.data;
   },
 
