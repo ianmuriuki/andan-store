@@ -84,6 +84,9 @@ app.use('/api/users', userRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/upload', uploadRoutes);
 
+// Serve uploads directory statically
+app.use('/uploads', express.static('uploads'));
+
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static('public'));

@@ -48,7 +48,13 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
+      default: null, // URL to avatar image
+    },
+    // Google OAuth ID (null for local users)
+    googleId: {
+      type: String,
       default: null,
+      index: true,
     },
     role: {
       type: String,
