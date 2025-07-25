@@ -29,5 +29,17 @@ export const orderService = {
   async cancelOrder(id, reason) {
     const response = await api.patch(`/orders/${id}/cancel`, { reason });
     return response.data;
+  },
+
+  // Get all orders (admin)
+  async getAllOrders(params = {}) {
+    const response = await api.get('/orders', { params });
+    return response.data;
+  },
+
+  // Export orders as CSV (admin)
+  async exportOrdersCSV() {
+    const response = await api.get('/orders/export', { responseType: 'blob' });
+    return response.data;
   }
 };
