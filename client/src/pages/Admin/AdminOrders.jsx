@@ -1,69 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, Search, Filter, Download, MoreVertical, Package, Truck, CheckCircle } from 'lucide-react';
 import PropTypes from 'prop-types';
-
+import { orderService } from '../../services/orderService';
 
 const AdminOrders = () => {
-  const [orders, setOrders] = useState([
-    {
-      id: 'ORD001',
-      customer: 'John Doe',
-      email: 'john@example.com',
-      total: 1250.50,
-      status: 'delivered',
-      date: '2024-01-15',
-      items: 3,
-      paymentMethod: 'M-Pesa',
-      deliveryAddress: '123 Main St, Nairobi'
-    },
-    {
-      id: 'ORD002',
-      customer: 'Jane Smith',
-      email: 'jane@example.com',
-      total: 850.75,
-      status: 'processing',
-      date: '2024-01-14',
-      items: 2,
-      paymentMethod: 'M-Pesa',
-      deliveryAddress: '456 Oak Ave, Nairobi'
-    },
-    {
-      id: 'ORD003',
-      customer: 'Mike Johnson',
-      email: 'mike@example.com',
-      total: 2100.00,
-      status: 'shipped',
-      date: '2024-01-13',
-      items: 5,
-      paymentMethod: 'M-Pesa',
-      deliveryAddress: '789 Pine Rd, Nairobi'
-    },
-    {
-      id: 'ORD004',
-      customer: 'Sarah Wilson',
-      email: 'sarah@example.com',
-      total: 750.25,
-      status: 'pending',
-      date: '2024-01-12',
-      items: 1,
-      paymentMethod: 'M-Pesa',
-      deliveryAddress: '321 Elm St, Nairobi'
-    },
-  ]);
-
+  const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
-  const statusOptions = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+  const statusOptions = ['All', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      // Admin: get all orders
+      const res = await orderService.getAllOrders();
+      setOrders(res.data || []);
+    } catch (err) {
+      // handle error (toast, etc)
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (orderId, newStatus) => {
+    try {
+      await orderService.updateOrderStatus(orderId, newStatus);
+      fetchOrders();
+    } catch (err) {
+      // handle error
+    }
+  };
+
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
+    setShowModal(true);
+  };
+
+  const handleDownloadCSV = async () => {
+    setDownloading(true);
+    try {
+      const res = await orderService.exportOrdersCSV();
+      const url = window.URL.createObjectURL(new Blob([res]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'orders.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (err) {
+      // handle error
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const customer = order.user ? `${order.user.firstName} ${order.user.lastName}` : '';
+    const matchesSearch = customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order._id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === '' || statusFilter === 'All' || 
-                         order.status === statusFilter.toLowerCase();
+                         order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -99,17 +105,6 @@ const AdminOrders = () => {
     }
   };
 
-  const handleStatusUpdate = (orderId, newStatus) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
-  };
-
-  const handleViewOrder = (order) => {
-    setSelectedOrder(order);
-    setShowModal(true);
-  };
-
   const orderStats = [
     { label: 'Total Orders', value: orders.length, color: 'text-blue-600', bg: 'bg-blue-100' },
     { label: 'Pending', value: orders.filter(o => o.status === 'pending').length, color: 'text-yellow-600', bg: 'bg-yellow-100' },
@@ -134,9 +129,11 @@ const AdminOrders = () => {
           className="btn-primary"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
+          onClick={handleDownloadCSV}
+          disabled={downloading}
         >
           <Download className="w-4 h-4 mr-2" />
-          Export Orders
+          {downloading ? 'Exporting...' : 'Export Orders'}
         </motion.button>
       </motion.div>
 
@@ -189,7 +186,7 @@ const AdminOrders = () => {
           >
             {statusOptions.map(status => (
               <option key={status} value={status === 'All' ? '' : status}>
-                {status}
+                {status.charAt(0).toUpperCase() + status.slice(1)}
               </option>
             ))}
           </select>
@@ -242,7 +239,7 @@ const AdminOrders = () => {
               <AnimatePresence>
                 {filteredOrders.map((order, index) => (
                   <motion.tr
-                    key={order.id}
+                    key={order._id}
                     className="hover:bg-neutral-50 transition-colors"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -250,19 +247,19 @@ const AdminOrders = () => {
                     transition={{ duration: 0.3, delay: index * 0.05 }}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
-                      {order.id}
+                      {order.orderNumber}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-neutral-900">{order.customer}</div>
-                        <div className="text-sm text-neutral-500">{order.email}</div>
+                        <div className="text-sm font-medium text-neutral-900">{order.user ? `${order.user.firstName} ${order.user.lastName}` : ''}</div>
+                        <div className="text-sm text-neutral-500">{order.user ? order.user.email : ''}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                      {order.items} items
+                      {order.items.length} items
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
-                      KSH {order.total.toFixed(2)}
+                      KSH {order.totalPrice.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-2">
@@ -272,21 +269,21 @@ const AdminOrders = () => {
                         </span>
                         <select
                           value={order.status}
-                          onChange={e => handleStatusUpdate(order.id, e.target.value)}
+                          onChange={e => handleStatusUpdate(order._id, e.target.value)}
                           className="ml-2 border rounded px-2 py-1 text-xs"
                         >
                           {statusOptions
                             .filter(opt => opt !== 'All')
                             .map(opt => (
-                              <option key={opt} value={opt.toLowerCase()}>
-                                {opt}
+                              <option key={opt} value={opt}>
+                                {opt.charAt(0).toUpperCase() + opt.slice(1)}
                               </option>
                             ))}
                         </select>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">
-                      {order.date}
+                      {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
@@ -334,7 +331,7 @@ const AdminOrders = () => {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-neutral-800">
-                    Order Details - {selectedOrder.id}
+                    Order Details - {selectedOrder.orderNumber}
                   </h2>
                   <motion.button
                     onClick={() => setShowModal(false)}
@@ -352,15 +349,15 @@ const AdminOrders = () => {
                     <div className="space-y-3">
                       <div>
                         <span className="text-sm text-neutral-600">Name:</span>
-                        <p className="font-medium">{selectedOrder.customer}</p>
+                        <p className="font-medium">{selectedOrder.user ? `${selectedOrder.user.firstName} ${selectedOrder.user.lastName}` : ''}</p>
                       </div>
                       <div>
                         <span className="text-sm text-neutral-600">Email:</span>
-                        <p className="font-medium">{selectedOrder.email}</p>
+                        <p className="font-medium">{selectedOrder.user ? selectedOrder.user.email : ''}</p>
                       </div>
                       <div>
                         <span className="text-sm text-neutral-600">Phone:</span>
-                        <p className="font-medium">+254 700 123 456</p>
+                        <p className="font-medium">{selectedOrder.user ? selectedOrder.user.phone : ''}</p>
                       </div>
                     </div>
                   </div>
@@ -369,12 +366,12 @@ const AdminOrders = () => {
                     <h3 className="text-lg font-semibold mb-4 text-neutral-800">Order Information</h3>
                     <div className="space-y-3">
                       <div>
-                        <span className="text-sm text-neutral-600">Order ID:</span>
-                        <p className="font-medium">{selectedOrder.id}</p>
+                        <span className="text-sm text-neutral-600">Order Number:</span>
+                        <p className="font-medium">{selectedOrder.orderNumber}</p>
                       </div>
                       <div>
                         <span className="text-sm text-neutral-600">Date:</span>
-                        <p className="font-medium">{selectedOrder.date}</p>
+                        <p className="font-medium">{new Date(selectedOrder.createdAt).toLocaleDateString()}</p>
                       </div>
                       <div>
                         <span className="text-sm text-neutral-600">Status:</span>
@@ -384,7 +381,7 @@ const AdminOrders = () => {
                       </div>
                       <div>
                         <span className="text-sm text-neutral-600">Payment Method:</span>
-                        <p className="font-medium">{selectedOrder.paymentMethod}</p>
+                        <p className="font-medium">{selectedOrder.paymentInfo ? selectedOrder.paymentInfo.method : ''}</p>
                       </div>
                     </div>
                   </div>
@@ -392,7 +389,7 @@ const AdminOrders = () => {
 
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold mb-4 text-neutral-800">Delivery Address</h3>
-                  <p className="text-neutral-700">{selectedOrder.deliveryAddress}</p>
+                  <p className="text-neutral-700">{selectedOrder.shippingAddress ? `${selectedOrder.shippingAddress.street}, ${selectedOrder.shippingAddress.city}` : ''}</p>
                 </div>
 
                 <div className="mb-8">
@@ -408,18 +405,14 @@ const AdminOrders = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-neutral-200">
-                        <tr>
-                          <td className="px-4 py-3">Fresh Organic Apples</td>
-                          <td className="px-4 py-3">2 kg</td>
-                          <td className="px-4 py-3">KSH 299.00</td>
-                          <td className="px-4 py-3">KSH 598.00</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-3">Farm Fresh Milk</td>
-                          <td className="px-4 py-3">1 liter</td>
-                          <td className="px-4 py-3">KSH 120.00</td>
-                          <td className="px-4 py-3">KSH 120.00</td>
-                        </tr>
+                        {selectedOrder.items.map((item, idx) => (
+                          <tr key={idx}>
+                            <td className="px-4 py-3">{item.name}</td>
+                            <td className="px-4 py-3">{item.quantity}</td>
+                            <td className="px-4 py-3">KSH {item.price.toFixed(2)}</td>
+                            <td className="px-4 py-3">KSH {(item.price * item.quantity).toFixed(2)}</td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
@@ -428,19 +421,19 @@ const AdminOrders = () => {
                 <div className="border-t pt-6">
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-neutral-600">Subtotal:</span>
-                    <span className="font-medium">KSH {(selectedOrder.total - 100 - (selectedOrder.total * 0.16)).toFixed(2)}</span>
+                    <span className="font-medium">KSH {(selectedOrder.itemsPrice ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-neutral-600">Delivery Fee:</span>
-                    <span className="font-medium">KSH 100.00</span>
+                    <span className="font-medium">KSH {(selectedOrder.shippingPrice ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-neutral-600">Tax (16%):</span>
-                    <span className="font-medium">KSH {(selectedOrder.total * 0.16).toFixed(2)}</span>
+                    <span className="font-medium">KSH {(selectedOrder.taxPrice ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center text-lg font-bold border-t pt-3">
                     <span>Total:</span>
-                    <span>KSH {selectedOrder.total.toFixed(2)}</span>
+                    <span>KSH {(selectedOrder.totalPrice ?? 0).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -450,16 +443,6 @@ const AdminOrders = () => {
       </AnimatePresence>
     </div>
   );
-};
-
-const Order = ({ id, status, items }) => {
-  // component logic
-};
-
-Order.propTypes = {
-  id: PropTypes.string.isRequired,
-  status: PropTypes.string.isRequired,
-  items: PropTypes.array.isRequired,
 };
 
 export default AdminOrders;

@@ -27,7 +27,10 @@ const schema = yup.object({
     .required("Last name is required")
     .min(2, "Last name must be at least 2 characters"),
   email: yup.string().email("Invalid email").required("Email is required"),
-  phone: yup.string().optional(),
+  phone: yup
+    .string()
+    .matches(/^\+2547\d{8}$/, 'Phone number must be a valid Kenyan number starting with +2547')
+    .optional(),
   password: yup
     .string()
     .required("Password is required")
@@ -51,6 +54,7 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
+  const [phoneValue, setPhoneValue] = useState('+254');
 
   const {
     register,
@@ -243,10 +247,15 @@ const Register = () => {
                 <input
                   type="tel"
                   {...register("phone")}
-                  className={`input-field pl-10 ${
-                    errors.phone ? "border-error-500 focus:ring-error-500" : ""
-                  }`}
-                  placeholder="+254 700 123 456"
+                  value={phoneValue}
+                  onChange={e => {
+                    // Always keep +254 at the start
+                    let val = e.target.value;
+                    if (!val.startsWith('+254')) val = '+254' + val.replace(/^\+?254?/, '');
+                    setPhoneValue(val);
+                  }}
+                  className={`input-field pl-10 ${errors.phone ? "border-error-500 focus:ring-error-500" : ""}`}
+                  placeholder="+2547XXXXXXXX"
                 />
               </div>
               {errors.phone && (

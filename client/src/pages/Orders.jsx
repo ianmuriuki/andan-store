@@ -15,95 +15,31 @@ import {
   Search,
   Filter
 } from 'lucide-react';
-import PropTypes from 'prop-types';
+import { orderService } from '../services/orderService';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Mock orders data
-    const mockOrders = [
-      {
-        id: '1',
-        orderNumber: 'ORD-2024-001',
-        date: '2024-01-15',
-        status: 'delivered',
-        items: [
-          {
-            id: '1',
-            name: 'Fresh Organic Apples',
-            price: 299,
-            quantity: 2,
-            image: 'https://images.pexels.com/photos/102104/pexels-photo-102104.jpeg?auto=compress&cs=tinysrgb&w=200'
-          },
-          {
-            id: '2',
-            name: 'Farm Fresh Milk',
-            price: 120,
-            quantity: 1,
-            image: 'https://images.pexels.com/photos/248412/pexels-photo-248412.jpeg?auto=compress&cs=tinysrgb&w=200'
-          }
-        ],
-        total: 718,
-        deliveryAddress: '123 Main Street, Nairobi',
-        trackingNumber: 'TRK123456789'
-      },
-      {
-        id: '2',
-        orderNumber: 'ORD-2024-002',
-        date: '2024-01-18',
-        status: 'shipped',
-        items: [
-          {
-            id: '3',
-            name: 'Artisan Whole Grain Bread',
-            price: 180,
-            quantity: 1,
-            image: 'https://images.pexels.com/photos/1586947/pexels-photo-1586947.jpeg?auto=compress&cs=tinysrgb&w=200'
-          }
-        ],
-        total: 280,
-        deliveryAddress: '456 Oak Avenue, Nairobi',
-        estimatedDelivery: '2024-01-20',
-        trackingNumber: 'TRK987654321'
-      },
-      {
-        id: '3',
-        orderNumber: 'ORD-2024-003',
-        date: '2024-01-20',
-        status: 'processing',
-        items: [
-          {
-            id: '4',
-            name: 'Fresh Baby Spinach',
-            price: 89,
-            quantity: 3,
-            image: 'https://images.pexels.com/photos/2068303/pexels-photo-2068303.jpeg?auto=compress&cs=tinysrgb&w=200'
-          },
-          {
-            id: '5',
-            name: 'Premium Beef Steak',
-            price: 1200,
-            quantity: 1,
-            image: 'https://images.pexels.com/photos/361184/asparagus-steak-veal-steak-veal-361184.jpeg?auto=compress&cs=tinysrgb&w=200'
-          }
-        ],
-        total: 1567,
-        deliveryAddress: '789 Pine Road, Nairobi',
-        estimatedDelivery: '2024-01-22'
-      }
-    ];
-
-    setTimeout(() => {
-      setOrders(mockOrders);
-      setIsLoading(false);
-    }, 1000);
+    fetchOrders();
   }, []);
+
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    try {
+      const res = await orderService.getUserOrders();
+      setOrders(res.data || []);
+    } catch (err) {
+      setOrders([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -124,21 +60,7 @@ const Orders = () => {
     }
   };
 
-  /**
-   * Given a status string, returns a Lucide icon component.
-   * Maps statuses to icons as follows:
-   * - pending: <Clock />
-   * - confirmed: <CheckCircle />
-   * - processing: <Package />
-   * - shipped: <Truck />
-   * - delivered: <CheckCircle />
-   * - cancelled: <X />
-   * - default: <Package />
-   * @param {string} status
-   * @returns {JSX.Element}
-   */
   const getStatusIcon = (status) => {
-  
     switch (status) {
       case 'pending':
         return <Clock className="w-4 h-4" />;
@@ -159,8 +81,8 @@ const Orders = () => {
 
   const filteredOrders = orders.filter(order => {
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = (order.orderNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.items || []).some(item => (item.name || '').toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesStatus && matchesSearch;
   });
 
@@ -241,7 +163,7 @@ const Orders = () => {
             <AnimatePresence>
               {filteredOrders.map((order, index) => (
                 <motion.div
-                  key={order.id}
+                  key={order._id}
                   className="card hover:shadow-card-hover cursor-pointer"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -260,7 +182,7 @@ const Orders = () => {
                           </span>
                         </div>
                         <div className="text-sm text-neutral-600">
-                          {new Date(order.date).toLocaleDateString()}
+                          {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : ''}
                         </div>
                       </div>
 
@@ -270,24 +192,24 @@ const Orders = () => {
 
                       <div className="flex items-center space-x-4 mb-4">
                         <span className="text-neutral-600">
-                          {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                          {order.items ? order.items.length : 0} {order.items && order.items.length === 1 ? 'item' : 'items'}
                         </span>
                         <span className="text-2xl font-bold text-primary-500">
-                          KSH {order.total.toFixed(2)}
+                          KSH {(order.totalPrice ?? 0).toFixed(2)}
                         </span>
                       </div>
 
                       {/* Order Items Preview */}
                       <div className="flex items-center space-x-2 mb-4">
-                        {order.items.slice(0, 3).map((item, itemIndex) => (
+                        {(order.items || []).slice(0, 3).map((item, itemIndex) => (
                           <img
-                            key={item.id}
+                            key={item._id || itemIndex}
                             src={item.image}
                             alt={item.name}
                             className="w-12 h-12 object-cover rounded-card"
                           />
                         ))}
-                        {order.items.length > 3 && (
+                        {order.items && order.items.length > 3 && (
                           <div className="w-12 h-12 bg-neutral-100 rounded-card flex items-center justify-center text-sm font-medium text-neutral-600">
                             +{order.items.length - 3}
                           </div>
@@ -295,7 +217,7 @@ const Orders = () => {
                       </div>
 
                       <p className="text-neutral-600 text-sm">
-                        Delivery to: {order.deliveryAddress}
+                        Delivery to: {order.shippingAddress ? `${order.shippingAddress.street}, ${order.shippingAddress.city}` : ''}
                       </p>
 
                       {order.estimatedDelivery && order.status !== 'delivered' && (
@@ -325,20 +247,7 @@ const Orders = () => {
                         View Details
                       </motion.button>
 
-                      {order.status === 'delivered' && (
-                        <motion.button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Handle reorder
-                          }}
-                          className="btn-ghost"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          Reorder
-                        </motion.button>
-                      )}
+                      {/* Add cancel/reorder logic here if needed */}
                     </div>
                   </div>
                 </motion.div>
@@ -414,7 +323,7 @@ const Orders = () => {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-neutral-600">Date:</span>
-                          <span className="font-medium">{new Date(selectedOrder.date).toLocaleDateString()}</span>
+                          <span className="font-medium">{selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleDateString() : ''}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-neutral-600">Status:</span>
@@ -440,7 +349,7 @@ const Orders = () => {
                     {/* Delivery Information */}
                     <div>
                       <h3 className="text-lg font-semibold mb-4 text-neutral-800">Delivery Address</h3>
-                      <p className="text-neutral-700">{selectedOrder.deliveryAddress}</p>
+                      <p className="text-neutral-700">{selectedOrder.shippingAddress ? `${selectedOrder.shippingAddress.street}, ${selectedOrder.shippingAddress.city}` : ''}</p>
                     </div>
                   </div>
 
@@ -448,8 +357,8 @@ const Orders = () => {
                   <div className="mb-8">
                     <h3 className="text-lg font-semibold mb-4 text-neutral-800">Order Items</h3>
                     <div className="space-y-4">
-                      {selectedOrder.items.map((item) => (
-                        <div key={item.id} className="flex items-center space-x-4 p-4 bg-neutral-50 rounded-card">
+                      {(selectedOrder.items || []).map((item, idx) => (
+                        <div key={item._id || idx} className="flex items-center space-x-4 p-4 bg-neutral-50 rounded-card">
                           <img
                             src={item.image}
                             alt={item.name}
@@ -478,7 +387,7 @@ const Orders = () => {
                   <div className="border-t pt-6 mb-8">
                     <div className="flex justify-between items-center text-xl font-bold">
                       <span>Total:</span>
-                      <span className="text-primary-500">KSH {selectedOrder.total.toFixed(2)}</span>
+                      <span className="text-primary-500">KSH {(selectedOrder.totalPrice ?? 0).toFixed(2)}</span>
                     </div>
                   </div>
 
@@ -493,37 +402,7 @@ const Orders = () => {
                       Download Receipt
                     </motion.button>
 
-                    {selectedOrder.status === 'delivered' && (
-                      <>
-                        <motion.button
-                          className="btn-secondary flex-1"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <Star className="w-4 h-4 mr-2" />
-                          Rate Order
-                        </motion.button>
-                        <motion.button
-                          className="btn-primary flex-1"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          Reorder
-                        </motion.button>
-                      </>
-                    )}
-
-                    {selectedOrder.status !== 'delivered' && selectedOrder.status !== 'cancelled' && (
-                      <motion.button
-                        className="btn-secondary flex-1"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Contact Support
-                      </motion.button>
-                    )}
+                    {/* Add more actions as needed */}
                   </div>
                 </div>
               </motion.div>

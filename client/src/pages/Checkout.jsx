@@ -21,6 +21,8 @@ import {
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import toast from "react-hot-toast";
+import { orderService } from "../services/orderService";
+import { usePayment } from "../hooks/usePayment";
 
 const schema = yup.object({
   firstName: yup.string().required("First name is required"),
@@ -31,7 +33,8 @@ const schema = yup.object({
   city: yup.string().required("City is required"),
   postalCode: yup.string().required("Postal code is required"),
   paymentMethod: yup.string().required("Payment method is required"),
-  mpesaNumber: yup.string().when("paymentMethod", {
+  mpesaNumber: yup.string().when("paymentMethod",
+     {
     is: "mpesa",
     then: (schema) => schema.required("M-Pesa number is required"),
     otherwise: (schema) => schema.notRequired(),
@@ -44,6 +47,7 @@ const Checkout = () => {
   const { items, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { initiateMpesaPayment, isProcessing: isPaying } = usePayment();
 
   const subtotal = getCartTotal();
   const deliveryFee = subtotal >= 2000 ? 0 : 100;
@@ -56,9 +60,7 @@ const Checkout = () => {
     formState: { errors },
     watch,
     setValue,
-  } = useForm <
-  FormData >
-  {
+  } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       firstName: user?.firstName || "",
@@ -67,7 +69,7 @@ const Checkout = () => {
       phone: user?.phone || "",
       paymentMethod: "mpesa",
     },
-  };
+  });
 
   const paymentMethod = watch("paymentMethod");
 
@@ -78,23 +80,103 @@ const Checkout = () => {
   ];
 
   const onSubmit = async (data) => {
+    console.log("Submitting order", data, "Current step:", currentStep);
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
+      setTimeout(() => {
+        console.log("Advanced to step:", currentStep + 1);
+      }, 0);
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      // Simulate M-Pesa payment processing
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      // 1. Create the order in the backend
+      // const orderPayload = {
+      //   items: items.map(item => ({
+      //     product: item._id || item.id,
+      //     name: item.name,
+      //     price: item.price,
+      //     quantity: item.quantity,
+      //     unit: item.unit,
+      //     image: item.image,
+      //   })),
+      //   shippingAddress: {
+      //     firstName: data.firstName,
+      //     lastName: data.lastName,
+      //     email: data.email,
+      //     phone: data.phone,
+      //     street: data.address,
+      //     city: data.city,
+      //     state: "", // You can add a state field if you collect it
+      //     zipCode: data.postalCode,
+      //     country: "Kenya",
+      //     instructions: "", // Add if you collect delivery instructions
+      //   },
+      //   paymentInfo: {
+      //     method: "mpesa",
+      //     amount: total,
+      //     currency: "KES",
+      //     status: "pending",
+      //   },
+      //   itemsPrice: subtotal,
+      //   taxPrice: tax,
+      //   shippingPrice: deliveryFee,
+      //   totalPrice: total,
+      //   notes: "", // Add if you collect order notes
+      // };
 
-      // Clear cart and redirect to success page
+      const orderPayload = {
+        items: items.map((item) => ({
+          product: item._id || item.id, // <--- FIXED
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          unit: item.unit,
+          image: item.image,
+        })),
+        shippingAddress: {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          street: data.address,
+          city: data.city,
+          state: data.state, // <--- FIXED
+          zipCode: data.postalCode,
+          country: "Kenya",
+          instructions: data.instructions || "",
+        },
+        paymentInfo: {
+          method: "mpesa",
+          amount: total,
+          currency: "KES",
+          status: "pending",
+        },
+        itemsPrice: subtotal,
+        taxPrice: tax,
+        shippingPrice: deliveryFee,
+        totalPrice: total,
+        notes: data.notes || "",
+      };
+
+      const orderRes = await orderService.createOrder(orderPayload);
+      const orderId =
+        orderRes.data?._id || orderRes.data?.id || orderRes._id || orderRes.id;
+
+      // 2. Initiate M-Pesa payment
+      await initiateMpesaPayment(orderId, data.mpesaNumber);
+
+      // 3. Clear cart and redirect
       clearCart();
-      toast.success("Order placed successfully!");
+      toast.success("Order placed and payment initiated!");
       navigate("/orders");
     } catch (error) {
-      toast.error("Payment failed. Please try again.");
+      console.error("Order creation error:", error.response?.data || error);
+      toast.error(
+        error.message || "Order or payment failed. Please try again."
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -105,6 +187,8 @@ const Checkout = () => {
       setCurrentStep(currentStep - 1);
     }
   };
+
+  console.log("Checkout component rendered. Current step:", currentStep);
 
   if (items.length === 0) {
     return (
@@ -123,6 +207,8 @@ const Checkout = () => {
       </div>
     );
   }
+
+  console.log("Current form errors:", errors);
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -377,10 +463,24 @@ const Checkout = () => {
 
                     <div className="flex justify-end">
                       <motion.button
-                        type="submit"
+                        type="button"
                         className="btn-primary"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
+                        onClick={async () => {
+                          const valid = await handleSubmit(() => true)();
+                          if (Object.keys(errors).length === 0) {
+                            setCurrentStep(currentStep + 1);
+                            setTimeout(() => {
+                              console.log("Advanced to step:", currentStep + 1);
+                            }, 0);
+                          } else {
+                            console.log("Validation errors:", errors);
+                            toast.error(
+                              "Please fix the errors above before continuing."
+                            );
+                          }
+                        }}
                       >
                         Continue to Payment
                         <ArrowRight className="w-4 h-4 ml-2" />
@@ -612,12 +712,16 @@ const Checkout = () => {
                       </motion.button>
                       <motion.button
                         type="submit"
-                        disabled={isProcessing}
+                        disabled={isProcessing || isPaying}
                         className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                        whileHover={{ scale: isProcessing ? 1 : 1.02 }}
-                        whileTap={{ scale: isProcessing ? 1 : 0.98 }}
+                        whileHover={{
+                          scale: isProcessing || isPaying ? 1 : 1.02,
+                        }}
+                        whileTap={{
+                          scale: isProcessing || isPaying ? 1 : 0.98,
+                        }}
                       >
-                        {isProcessing ? (
+                        {isProcessing || isPaying ? (
                           <div className="flex items-center space-x-2">
                             <Loader2 className="w-4 h-4 animate-spin" />
                             <span>Processing Payment...</span>

@@ -118,6 +118,7 @@ const AdminUsers = () => {
   };
 
   const roleOptions = ['admin', 'editor', 'viewer'];
+  const statusOptions = ['All', 'active', 'inactive'];
 
 
   const handleAvatarChange = async (e) => {
@@ -434,7 +435,7 @@ const AdminUsers = () => {
                       {user.totalOrders}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
-                      KSH {user.totalSpent.toFixed(2)}
+                      KSH {(user.totalSpent ?? 0).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
