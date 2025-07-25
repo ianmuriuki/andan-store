@@ -53,7 +53,7 @@ const paymentInfoSchema = new mongoose.Schema({
   mpesaReceiptNumber: String,
   status: {
     type: String,
-    enum: ["pending", "completed", "failed", "refunded"],
+    enum: ["pending", "completed", "failed", "refunded", "timeout"],
     default: "pending",
   },
   amount: {
@@ -66,6 +66,9 @@ const paymentInfoSchema = new mongoose.Schema({
     default: "KES",
   },
   paidAt: Date,
+  merchantRequestId: String,
+  phoneNumber: String,
+  transactionDate: Date,
 });
 
 const orderSchema = new mongoose.Schema(

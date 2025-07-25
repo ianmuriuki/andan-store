@@ -33,3 +33,36 @@ router.post('/webhook', async (req, res) => {
 });
 
 export default router; 
+
+
+
+// import express from 'express';
+// import { body } from 'express-validator';
+// import {
+//   initiateMpesaPayment,
+//   mpesaCallback,
+//   queryPaymentStatus,
+//   mpesaTimeout
+// } from '../controllers/paymentController.js';
+// import { auth } from '../middleware/auth.js';
+// import { validate } from '../middleware/validate.js';
+
+// const router = express.Router();
+
+// // Validation rules
+// const initiatePaymentValidation = [
+//   body('orderId')
+//     .notEmpty()
+//     .withMessage('Order ID is required'),
+//   body('phoneNumber')
+//     .matches(/^(\+254|254|0)[17]\d{8}$/)
+//     .withMessage('Please provide a valid Kenyan phone number')
+// ];
+
+// // Routes
+// router.post('/mpesa/initiate', auth, initiatePaymentValidation, validate, initiateMpesaPayment);
+// router.post('/mpesa/callback', mpesaCallback);
+// router.post('/mpesa/timeout', mpesaTimeout);
+// router.get('/mpesa/status/:checkoutRequestID', auth, queryPaymentStatus);
+
+// export default router;
