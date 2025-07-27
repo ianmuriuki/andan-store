@@ -12,7 +12,7 @@ import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
 import userRoutes from './routes/users.js';
-import paymentRoutes from './routes/payments.js';
+import paymentsRouter from './routes/payments.js';
 import uploadRoutes from './routes/upload.js';
 
 // Import middleware
@@ -81,7 +81,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use('/api/payments', paymentsRouter);
 app.use('/api/upload', uploadRoutes);
 
 // Serve uploads directory statically

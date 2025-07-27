@@ -1,50 +1,31 @@
+import mpesaService from '../services/mpesaServices.js';
 import { Order } from '../models/Order.js';
-import mpesaService from '../services/mpesaService.js';
 
 // Initiate M-Pesa payment
 export const initiateMpesaPayment = async (req, res) => {
   try {
     const { orderId, phoneNumber } = req.body;
-
-    // Get order details
+    if (!orderId || !phoneNumber) {
+      return res.status(400).json({ success: false, message: 'orderId and phoneNumber are required' });
+    }
     const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
-      });
+      return res.status(404).json({ success: false, message: 'Order not found' });
     }
-
-    // Initiate STK Push
     const stkResponse = await mpesaService.stkPush(
       phoneNumber,
       order.totalPrice,
       order.orderNumber,
       `Payment for order ${order.orderNumber}`
     );
-
-    // Update order with payment info
+    // Optionally update order with transactionId
     order.paymentInfo.transactionId = stkResponse.CheckoutRequestID;
     order.paymentInfo.method = 'mpesa';
     await order.save();
-
-    res.json({
-      success: true,
-      message: 'Payment initiated successfully',
-      data: {
-        checkoutRequestID: stkResponse.CheckoutRequestID,
-        merchantRequestID: stkResponse.MerchantRequestID,
-        responseCode: stkResponse.ResponseCode,
-        responseDescription: stkResponse.ResponseDescription
-      }
-    });
+    res.json({ success: true, message: 'Payment initiated successfully', data: stkResponse });
   } catch (error) {
     console.error('Initiate payment error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to initiate payment',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.status(500).json({ success: false, message: error.message || 'Failed to initiate payment' });
   }
 };
 
