@@ -192,6 +192,8 @@ orderSchema.methods.canBeRefunded = function () {
 
 // Pre-save middleware to generate order number and calculate totals
 orderSchema.pre("save", function (next) {
+  console.log("Order pre-save middleware running", this);
+
   if (this.isNew && !this.orderNumber) {
     this.orderNumber = this.generateOrderNumber();
   }
@@ -200,13 +202,9 @@ orderSchema.pre("save", function (next) {
     this.calculateTotals();
   }
 
-  // Set estimated delivery (1-2 days for Nairobi, 3-5 days for other areas)
-  if (this.isNew) {
-    const deliveryDays =
-      this.shippingAddress.city.toLowerCase() === "nairobi" ? 2 : 5;
-    this.estimatedDelivery = new Date(
-      Date.now() + deliveryDays * 24 * 60 * 60 * 1000
-    );
+  // Set estimated delivery (default: now + 2 hours)
+  if (this.isNew || !this.estimatedDelivery) {
+    this.estimatedDelivery = new Date(Date.now() + 2 * 60 * 60 * 1000);
   }
 
   next();
