@@ -31,14 +31,16 @@ const schema = yup.object({
   phone: yup.string().required("Phone number is required"),
   address: yup.string().required("Address is required"),
   city: yup.string().required("City is required"),
+  state: yup.string().required("State is required"),
   postalCode: yup.string().required("Postal code is required"),
   paymentMethod: yup.string().required("Payment method is required"),
-  mpesaNumber: yup.string().when("paymentMethod",
-     {
+  mpesaNumber: yup.string().when("paymentMethod", {
     is: "mpesa",
     then: (schema) => schema.required("M-Pesa number is required"),
     otherwise: (schema) => schema.notRequired(),
   }),
+  instructions: yup.string(),
+  notes: yup.string(),
 });
 
 const Checkout = () => {
@@ -68,6 +70,9 @@ const Checkout = () => {
       email: user?.email || "",
       phone: user?.phone || "",
       paymentMethod: "mpesa",
+      state: "",
+      instructions: "",
+      notes: "",
     },
   });
 
@@ -92,44 +97,9 @@ const Checkout = () => {
     setIsProcessing(true);
 
     try {
-      // 1. Create the order in the backend
-      // const orderPayload = {
-      //   items: items.map(item => ({
-      //     product: item._id || item.id,
-      //     name: item.name,
-      //     price: item.price,
-      //     quantity: item.quantity,
-      //     unit: item.unit,
-      //     image: item.image,
-      //   })),
-      //   shippingAddress: {
-      //     firstName: data.firstName,
-      //     lastName: data.lastName,
-      //     email: data.email,
-      //     phone: data.phone,
-      //     street: data.address,
-      //     city: data.city,
-      //     state: "", // You can add a state field if you collect it
-      //     zipCode: data.postalCode,
-      //     country: "Kenya",
-      //     instructions: "", // Add if you collect delivery instructions
-      //   },
-      //   paymentInfo: {
-      //     method: "mpesa",
-      //     amount: total,
-      //     currency: "KES",
-      //     status: "pending",
-      //   },
-      //   itemsPrice: subtotal,
-      //   taxPrice: tax,
-      //   shippingPrice: deliveryFee,
-      //   totalPrice: total,
-      //   notes: "", // Add if you collect order notes
-      // };
-
       const orderPayload = {
         items: items.map((item) => ({
-          product: item._id || item.id, // <--- FIXED
+          product: item._id || item.id, // revert to previous logic
           name: item.name,
           price: item.price,
           quantity: item.quantity,
@@ -143,7 +113,7 @@ const Checkout = () => {
           phone: data.phone,
           street: data.address,
           city: data.city,
-          state: data.state, // <--- FIXED
+          state: data.state,
           zipCode: data.postalCode,
           country: "Kenya",
           instructions: data.instructions || "",
@@ -440,25 +410,52 @@ const Checkout = () => {
                           </p>
                         )}
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Postal Code
+                          State
                         </label>
                         <input
                           type="text"
-                          {...register("postalCode")}
+                          {...register("state")}
                           className={`input-field ${
-                            errors.postalCode ? "border-error-500" : ""
+                            errors.state ? "border-error-500" : ""
                           }`}
-                          placeholder="00100"
+                          placeholder="State"
                         />
-                        {errors.postalCode && (
+                        {errors.state && (
                           <p className="text-error-500 text-sm mt-1">
-                            {errors.postalCode.message}
+                            {errors.state.message}
                           </p>
                         )}
                       </div>
+                    </div>
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Postal Code
+                      </label>
+                      <input
+                        type="text"
+                        {...register("postalCode")}
+                        className={`input-field ${
+                          errors.postalCode ? "border-error-500" : ""
+                        }`}
+                        placeholder="00100"
+                      />
+                      {errors.postalCode && (
+                        <p className="text-error-500 text-sm mt-1">
+                          {errors.postalCode.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Delivery Instructions (optional)
+                      </label>
+                      <textarea
+                        {...register("instructions")}
+                        className="input-field h-20 resize-none"
+                        placeholder="e.g. Leave at the gate, call on arrival, etc."
+                      />
                     </div>
 
                     <div className="flex justify-end">
@@ -595,6 +592,16 @@ const Checkout = () => {
                         </p>
                       </motion.div>
                     )}
+                    <div className="mb-8">
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">
+                        Order Notes (optional)
+                      </label>
+                      <textarea
+                        {...register("notes")}
+                        className="input-field h-20 resize-none"
+                        placeholder="Any notes for your order (e.g. gift message, special requests)"
+                      />
+                    </div>
 
                     <div className="flex justify-between">
                       <motion.button
@@ -676,8 +683,12 @@ const Checkout = () => {
                         <p>{watch("phone")}</p>
                         <p>{watch("address")}</p>
                         <p>
-                          {watch("city")}, {watch("postalCode")}
+                          {watch("city")}, {watch("state")},{" "}
+                          {watch("postalCode")}
                         </p>
+                        {watch("instructions") && (
+                          <p>Instructions: {watch("instructions")}</p>
+                        )}
                       </div>
                     </div>
 
@@ -698,6 +709,17 @@ const Checkout = () => {
                         </div>
                       </div>
                     </div>
+                    {/* Order Notes Summary */}
+                    {watch("notes") && (
+                      <div className="bg-neutral-50 rounded-card p-4 mb-8">
+                        <h3 className="font-semibold text-neutral-800 mb-3">
+                          Order Notes
+                        </h3>
+                        <div className="text-sm text-neutral-600">
+                          {watch("notes")}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex justify-between">
                       <motion.button
