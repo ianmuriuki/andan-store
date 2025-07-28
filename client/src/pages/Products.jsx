@@ -25,8 +25,8 @@ const Products = () => {
     maxPrice: 5000,
     page: 1,
     limit: 12,
-    sortBy: "name",
-    sortOrder: "asc"
+    sortBy: "createdAt",
+    sortOrder: "desc",
   });
   const { data: productsData, isLoading, error } = useProducts(filters);
   const products = productsData?.data || [];
@@ -34,7 +34,7 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState(filters.search);
   const [selectedCategory, setSelectedCategory] = useState(filters.category);
   const [priceRange, setPriceRange] = useState([0, 5000]);
-  const [sortBy, setSortBy] = useState("name");
+  const [sortBy, setSortBy] = useState("newest");
   const [viewMode, setViewMode] = useState("grid");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -97,7 +97,7 @@ const Products = () => {
       id: product._id,
       name: product.name,
       price: product.price,
-      image: product.images?.[0] || '',
+      image: product.images?.[0] || "",
       stock: product.stock,
       category: product.category,
       unit: product.unit,
@@ -306,7 +306,8 @@ const Products = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <p className="text-neutral-600">
-            Showing {products.length} of {pagination.total || products.length} products
+            Showing {products.length} of {pagination.total || products.length}{" "}
+            products
             {searchTerm && ` for "${searchTerm}"`}
           </p>
         </motion.div>
@@ -346,7 +347,7 @@ const Products = () => {
                     {/* Badges and discounts can be added here if available from backend */}
                     <Link to={`/products/${product._id}`}>
                       <motion.img
-                        src={product.images?.[0] || ''}
+                        src={product.images?.[0] || ""}
                         alt={product.name}
                         className={`w-full object-cover group-hover:scale-105 transition-transform duration-300 ${
                           viewMode === "grid" ? "h-48" : "h-32 md:h-full"
