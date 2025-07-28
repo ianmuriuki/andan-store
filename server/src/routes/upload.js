@@ -1,46 +1,27 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { auth } from '../middleware/auth.js';
+import cloudinary from '../utils/cloudinary.js';
 
 const router = express.Router();
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// Ensure uploads directory exists
-const uploadDir = path.resolve('uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
+router.post('/', upload.single('image'), async (req, res) => {
+  try {
+    const file = req.file;
+    if (!file) return res.status(400).json({ error: 'No file uploaded' });
 
-// Multer storage config
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${Date.now()}${ext}`);
+    const result = await cloudinary.uploader.upload_stream(
+      { folder: 'uploads' },
+      (error, result) => {
+        if (error) return res.status(500).json({ error: error.message });
+        res.json({ url: result.secure_url });
+      }
+    );
+    result.end(file.buffer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-});
-
-const fileFilter = (req, file, cb) => {
-  // Accept images only
-  if (!file.mimetype.startsWith('image/')) {
-    return cb(new Error('Only image files are allowed!'), false);
-  }
-  cb(null, true);
-};
-
-const upload = multer({ storage, fileFilter });
-
-// @route   POST /api/upload
-// @desc    Upload a file (image)
-// @access  Private
-router.post('/', auth, upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, message: 'No file uploaded' });
-  }
-  res.status(201).json({ success: true, filePath: `/uploads/${req.file.filename}` });
 });
 
 export default router; 
