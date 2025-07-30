@@ -76,7 +76,7 @@ const Header = () => {
               <span className="text-2xl font-playfair font-bold text-neutral-800 group-hover:text-primary-500 transition-colors">
                 Andan
               </span>
-              <p className="text-sm text-neutral-500 -mt-1">Fresh Groceries</p>
+              <p className="text-sm text-neutral-500 -mt-1">Stores</p>
             </div>
           </Link>
 

@@ -301,7 +301,7 @@ const Home = () => {
                       4.9/5 Rating
                     </p>
                     <p className="text-sm text-neutral-600">
-                      From 1000+ reviews
+                      From 100+ reviews
                     </p>
                   </div>
                 </div>
