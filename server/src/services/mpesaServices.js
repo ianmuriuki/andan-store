@@ -7,9 +7,17 @@ class MpesaService {
     this.consumerSecret = process.env.MPESA_CONSUMER_SECRET;
     this.shortcode = process.env.MPESA_SHORTCODE;
     this.passkey = process.env.MPESA_PASSKEY;
-    this.baseURL = process.env.MPESA_BASE_URL;
+    
+    // FIX 1: Use the correct base URL variable from your .env
+    this.baseURL = process.env.MPESA_SANDBOX_URL; 
+    
     this.callbackURL = process.env.MPESA_CALLBACK_URL;
-    this.timeoutURL = process.env.MPESA_TIMEOUT_URL;
+    this.timeoutURL = process.env.MPESA_TIMEOUT_URL; // Ensure this is defined if used
+
+    // FIX 2: Construct the full API URLs needed by the methods
+    this.AUTH_URL = `${this.baseURL}/oauth/v1/generate?grant_type=client_credentials`;
+    this.STK_URL = `${this.baseURL}/mpesa/stkpush/v1/processrequest`;
+    this.QUERY_URL = `${this.baseURL}/mpesa/stkpushquery/v1/query_transaction_status`;
   }
 
   // Generate access token
@@ -17,7 +25,8 @@ class MpesaService {
     try {
       const auth = Buffer.from(`${this.consumerKey}:${this.consumerSecret}`).toString('base64');
       
-      const response = await axios.get(process.env.MPESA_AUTH_URL, {
+      // FIX 3: Use the constructed AUTH_URL
+      const response = await axios.get(this.AUTH_URL, {
         headers: {
           'Authorization': `Basic ${auth}`,
           'Content-Type': 'application/json'
@@ -33,7 +42,7 @@ class MpesaService {
 
   // Generate password for STK Push
   generatePassword() {
-    const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
+    const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14); // Corrected slice to get 14 digits
     const password = Buffer.from(`${this.shortcode}${this.passkey}${timestamp}`).toString('base64');
     return { password, timestamp };
   }
@@ -61,7 +70,8 @@ class MpesaService {
         TransactionDesc: transactionDesc
       };
 
-      const response = await axios.post(process.env.MPESA_STK_URL, requestBody, {
+      // FIX 4: Use the constructed STK_URL
+      const response = await axios.post(this.STK_URL, requestBody, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
@@ -88,7 +98,8 @@ class MpesaService {
         CheckoutRequestID: checkoutRequestID
       };
 
-      const response = await axios.post(process.env.MPESA_QUERY_URL, requestBody, {
+      // FIX 5: Use the constructed QUERY_URL
+      const response = await axios.post(this.QUERY_URL, requestBody, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
