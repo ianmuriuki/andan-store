@@ -60,24 +60,10 @@ const Profile = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [addresses, setAddresses] = [
-    {
-      id: "1",
-      street: "123 Main Street, Apt 4B",
-      city: "Nairobi",
-      state: "Nairobi County",
-      zipCode: "00100",
-      isDefault: true,
-    },
-    {
-      id: "2",
-      street: "456 Oak Avenue",
-      city: "Nairobi",
-      state: "Nairobi County",
-      zipCode: "00200",
-      isDefault: false,
-    },
-  ];
+  const [addresses, setAddresses] = useState(() =>
+    // User addresses
+    Array.isArray(user?.addresses) ? user.addresses : []
+  );
 
   const profileForm = useForm({
     resolver: yupResolver(profileSchema),
@@ -123,53 +109,86 @@ const Profile = () => {
     }
   };
 
-  const onAddressSubmit = (data) => {
-    if (editingAddress) {
-      // Update existing address
-      setAddresses(
-        addresses.map((addr) =>
-          addr.id === editingAddress.id ? { ...addr, ...data } : addr
-        )
-      );
-      toast.success("Address updated successfully!");
-    } else {
-      // Add new address
-      const newAddress = {
-        id: Date.now().toString(),
-        ...data,
-        isDefault: addresses.length === 0,
-      };
-      setAddresses([...addresses, newAddress]);
-      toast.success("Address added successfully!");
-    }
+  const onAddressSubmit = async (data) => {
+  // keep a backup to revert on failure
+  const prevAddresses = Array.isArray(addresses) ? addresses : [];
 
-    setShowAddressForm(false);
-    setEditingAddress(null);
-    addressForm.reset();
-  };
+  let newAddresses;
+  if (editingAddress) {
+    newAddresses = prevAddresses.map((addr) =>
+      addr.id === editingAddress.id ? { ...addr, ...data } : addr
+    );
+  } else {
+    const newAddress = {
+      id: Date.now().toString(),
+      ...data,
+      isDefault: prevAddresses.length === 0,
+    };
+    newAddresses = [...prevAddresses, newAddress];
+  }
 
-  const handleEditAddress = (addres) => {
+  // update UI immediately
+  setAddresses(newAddresses);
+  setShowAddressForm(false);
+  setEditingAddress(null);
+  addressForm.reset();
+
+  // persist to backend
+  try {
+    // updateUser is expected to persist changes to the DB (via API)
+    await updateUser({ addresses: newAddresses });
+    toast.success(editingAddress ? "Address updated successfully!" : "Address added successfully!");
+  } catch (err) {
+    // revert UI on error
+    setAddresses(prevAddresses);
+    console.error('Failed to save addresses:', err);
+    toast.error('Failed to save address. Please try again.');
+  }
+};
+
+  const handleEditAddress = (address) => {
     setEditingAddress(address);
     addressForm.reset(address);
     setShowAddressForm(true);
   };
 
-  const handleDeleteAddress = (id) => {
-    if (window.confirm("Are you sure you want to delete this address?")) {
-      setAddresses(addresses.filter((addr) => addr.id !== id));
-      toast.success("Address deleted successfully!");
-    }
-  };
 
-  const handleSetDefaultAddress = (id) => {
-    setAddresses(
-      addresses.map((addr) => ({
-        ...addr,
-        isDefault: addr.id === id,
-      }))
-    );
-    toast.success("Default address updated!");
-  };
+ const handleDeleteAddress = async (id) => {
+  const prevAddresses = Array.isArray(addresses) ? addresses : [];
+  const newAddresses = prevAddresses.filter((a) => a.id !== id);
+
+  // if removing default, ensure another becomes default
+  if (!newAddresses.some(a => a.isDefault) && newAddresses.length > 0) {
+    newAddresses[0].isDefault = true;
+  }
+
+  setAddresses(newAddresses);
+
+  try {
+    await updateUser({ addresses: newAddresses });
+    toast.success('Address deleted');
+  } catch (err) {
+    setAddresses(prevAddresses);
+    console.error('Failed to delete address:', err);
+    toast.error('Failed to delete address. Please try again.');
+  }
+};
+
+const handleSetDefaultAddress = async (id) => {
+  const prevAddresses = Array.isArray(addresses) ? addresses : [];
+  const newAddresses = prevAddresses.map((a) => ({ ...a, isDefault: a.id === id }));
+
+  setAddresses(newAddresses);
+
+  try {
+    await updateUser({ addresses: newAddresses });
+    toast.success('Default address updated');
+  } catch (err) {
+    setAddresses(prevAddresses);
+    console.error('Failed to set default address:', err);
+    toast.error('Failed to set default address. Please try again.');
+  }
+};
 
   // Avatar upload handler
   const handleAvatarChange = async (e) => {
