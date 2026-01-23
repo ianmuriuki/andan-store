@@ -168,11 +168,10 @@ orderSchema.methods.calculateTotals = function () {
     return total + item.price * item.quantity;
   }, 0);
 
-  // Calculate tax (16% VAT in Kenya)
-  this.taxPrice = this.itemsPrice * 0.16;
+  this.taxPrice = 0;
 
   // Calculate shipping (free for orders over 2000 KES)
-  this.shippingPrice = this.itemsPrice >= 2000 ? 0 : 100;
+  // this.shippingPrice = this.itemsPrice >= 2000 ? 0 : 100;
 
   this.totalPrice = this.itemsPrice + this.taxPrice + this.shippingPrice;
 };
