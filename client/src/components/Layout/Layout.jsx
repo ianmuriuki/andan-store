@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
+import PaymentSuccessModal from './PaymentSuccessModal';
 
 const Layout = () => {
   return (
@@ -11,8 +12,9 @@ const Layout = () => {
         <Outlet />
       </main>
       <Footer />
+      <PaymentSuccessModal />
     </div>
   );
 };
 
-export default Layout;
+export default Layout;                                                                                                                

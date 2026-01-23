@@ -22,7 +22,7 @@ const Login = () => {
 
   const from = location.state?.from?.pathname || '/';
 
-  const {
+  const {                                                                                       
     register,
     handleSubmit,
     formState: { errors },
@@ -42,7 +42,7 @@ const Login = () => {
     }
   };
 
-  // Google OAuth handler
+  // Google OAuth handler function
   const handleGoogleAuth = () => {
     window.location.href = 'http://localhost:5000/api/auth/google';
   };

@@ -22,7 +22,7 @@ import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import toast from "react-hot-toast";
 import { orderService } from "../services/orderService";
-import { usePayment } from "../hooks/usePayment";
+import { usePayment } from "../contexts/PaymentContext";
 
 const schema = yup.object({
   firstName: yup.string().required("First name is required"),
@@ -52,8 +52,14 @@ const Checkout = () => {
   const { initiateMpesaPayment, isProcessing: isPaying } = usePayment();
 
   const subtotal = getCartTotal();
-  const deliveryFee = subtotal >= 2000 ? 0 : 100;
-  const tax = subtotal * 0.16;
+  // COMMENTED OUT: Delivery fee calculation (was: free for orders over 2000 KES)
+  // const deliveryFee = subtotal >= 2000 ? 0 : 100;
+  const deliveryFee = 0; // No delivery fee for now
+  
+  // COMMENTED OUT: Tax calculation (16% VAT in Kenya)
+  // const tax = subtotal * 0.16;
+  const tax = 0; // No tax for now
+  
   const total = subtotal + deliveryFee + tax;
 
   const {
@@ -97,15 +103,42 @@ const Checkout = () => {
     setIsProcessing(true);
 
     try {
-      const orderPayload = {
-        items: items.map((item) => ({
-          product: item._id || item.id, // revert to previous logic
+      // Calculate estimated delivery (2 hours from now)
+      const estimatedDelivery = new Date(Date.now() + 2 * 60 * 60 * 1000);
+
+      // Validate all items have valid MongoDB ObjectIds
+      const validatedItems = items.map((item) => {
+        let productId = item._id || item.id;
+
+        // Safety check: if ID is not a valid MongoDB ObjectId (24-char hex), warn user
+        if (
+          !productId ||
+          (typeof productId === "string" && productId.length !== 24)
+        ) {
+          console.warn(
+            `Invalid product ID detected: ${productId}. Product:`,
+            item.name
+          );
+          toast.error(
+            `Error: Product "${item.name}" has an invalid ID. Please clear your cart and add items again.`
+          );
+          throw new Error(
+            `Invalid product ID for ${item.name}. Please refresh and re-add items to cart.`
+          );
+        }
+
+        return {
+          product: productId,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
           unit: item.unit,
           image: item.image,
-        })),
+        };
+      });
+
+      const orderPayload = {
+        items: validatedItems,
         shippingAddress: {
           firstName: data.firstName,
           lastName: data.lastName,
@@ -120,6 +153,7 @@ const Checkout = () => {
         },
         paymentInfo: {
           method: "mpesa",
+          phoneNumber: data.mpesaNumber,
           amount: total,
           currency: "KES",
           status: "pending",
@@ -128,6 +162,7 @@ const Checkout = () => {
         taxPrice: tax,
         shippingPrice: deliveryFee,
         totalPrice: total,
+        estimatedDelivery: estimatedDelivery,
         notes: data.notes || "",
       };
 

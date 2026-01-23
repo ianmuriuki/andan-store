@@ -3,13 +3,14 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
+import { PaymentProvider } from "./contexts/PaymentContext";
 import Layout from "./components/Layout/Layout";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
-import Login from "./pages/Login";
+import Checkout from "./pages/Checkout";                                                                                         
+import Login from "./pages/Login";                                                                
 import Register from "./pages/Register";
 import AuthCallback from "./pages/AuthCallback";
 import Profile from "./pages/Profile";
@@ -22,7 +23,7 @@ import AdminUsers from "./pages/Admin/AdminUsers";
 import AdminAnalytics from "./pages/Admin/AdminAnalytics";
 import AdminPromotions from "./pages/Admin/AdminPromotions";
 import AdminDelivery from "./pages/Admin/AdminDelivery";
-import AdminReviews from './pages/Admin/AdminReviews';
+import AdminReviews from './pages/Admin/AdminReviews';                                                                                           
 import AdminReports from "./pages/Admin/AdminReports";
 import AdminSettings from "./pages/Admin/AdminSettings";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
@@ -35,100 +36,102 @@ function App() {
     <ErrorBoundary>
       <Router>
         <AuthProvider>
-          <CartProvider>
-            <div className="App min-h-screen bg-white">
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 4000,
-                  style: {
-                    background: "#363636",
-                    color: "#fff",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    fontFamily: "Inter, sans-serif",
-                  },
-                  success: {
-                    iconTheme: {
-                      primary: "#27AE60",
-                      secondary: "#fff",
+          <PaymentProvider>
+            <CartProvider>
+              <div className="App min-h-screen bg-white">
+                <Toaster
+                  position="top-right"
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      background: "#363636",
+                      color: "#fff",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontFamily: "Inter, sans-serif",
                     },
-                  },
-                  error: {
-                    iconTheme: {
-                      primary: "#EF4444",
-                      secondary: "#fff",
+                    success: {
+                      iconTheme: {
+                        primary: "#27AE60",
+                        secondary: "#fff",
+                      },
                     },
-                  },
-                }}
-              />
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Home />} />
-                  <Route path="products" element={<Products />} />
-                  <Route path="products/:id" element={<ProductDetails />} />
-                  <Route path="cart" element={<Cart />} />
-                  <Route path="login" element={<Login />} />
-                  <Route path="register" element={<Register />} />
-                  <Route
-                    path="/auth/google/callback"
-                    element={<AuthCallback />}
-                  />
+                    error: {
+                      iconTheme: {
+                        primary: "#EF4444",
+                        secondary: "#fff",
+                      },
+                    },
+                  }}
+                />
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={<Home />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="products/:id" element={<ProductDetails />} />
+                    <Route path="cart" element={<Cart />} />
+                    <Route path="login" element={<Login />} />
+                    <Route path="register" element={<Register />} />
+                    <Route
+                      path="/auth/google/callback"
+                      element={<AuthCallback />}
+                    />
 
-                  {/* Protected Routes */}
-                  <Route
-                    path="checkout"
-                    element={
-                      <ProtectedRoute>
-                        <Checkout />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="profile"
-                    element={
-                      <ProtectedRoute>
-                        <Profile />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="orders"
-                    element={
-                      <ProtectedRoute>
-                        <Orders />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Route>
+                    {/* Protected Routes */}
+                    <Route
+                      path="checkout"
+                      element={
+                        <ProtectedRoute>
+                          <Checkout />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="profile"
+                      element={
+                        <ProtectedRoute>
+                          <Profile />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="orders"
+                      element={
+                        <ProtectedRoute>
+                          <Orders />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Route>
 
-                {/* Admin Routes */}
-                <Route
-                  path="/admin"
-                  element={
-                    <AdminRoute>
-                      <AdminLayout />
-                    </AdminRoute>
-                  }
-                >
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="products" element={<AdminProducts />} />
-                  <Route path="orders" element={<AdminOrders />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="analytics" element={<AdminAnalytics />} />
-                  <Route path="promotions" element={<AdminPromotions />} />
-                  <Route path="delivery" element={<AdminDelivery />} />
-                  <Route path="reviews" element={<AdminReviews />} />
-                  <Route path="reports" element={<AdminReports />} />
-                  <Route path="settings" element={<AdminSettings />} />
-                </Route>
+                  {/* Admin Routes */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <AdminRoute>
+                        <AdminLayout />
+                      </AdminRoute>
+                    }
+                  >
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="products" element={<AdminProducts />} />
+                    <Route path="orders" element={<AdminOrders />} />
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="analytics" element={<AdminAnalytics />} />
+                    <Route path="promotions" element={<AdminPromotions />} />
+                    <Route path="delivery" element={<AdminDelivery />} />
+                    <Route path="reviews" element={<AdminReviews />} />
+                    <Route path="reports" element={<AdminReports />} />
+                    <Route path="settings" element={<AdminSettings />} />
+                  </Route>
 
-                {/* 404 Route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
-          </CartProvider>
+                  {/* 404 Route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+            </CartProvider>
+          </PaymentProvider>
         </AuthProvider>
       </Router>
     </ErrorBoundary>

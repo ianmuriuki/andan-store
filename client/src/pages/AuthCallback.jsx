@@ -10,7 +10,7 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const token = searchParams.get('token');
-    const refresh = searchParams.get('refresh');
+    const refresh = searchParams.get('refresh');                                                              
     if (token) {
       Cookies.set('token', token, { expires: 7 });
       if (refresh) Cookies.set('refreshToken', refresh, { expires: 30 });
