@@ -1,7 +1,7 @@
 {
   "name": "andan-grocery-server",
   "version": "1.0.0",
-  "description": "Backend server for Andan Grocery E-Commerce System",
+  "description": "Backend server for Andan Grocery E-Commerce System",                             
   "main": "src/server.js",
   "type": "module",
   "scripts": {

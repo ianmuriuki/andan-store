@@ -8,7 +8,7 @@ export const validate = (req, res, next) => {
       success: false,
       message: "Validation failed",
       errors: errors.array().map((error) => ({
-        field: error.type === "field" ? error.path : error.type,
+        field: error.type === "field" ? error.path : error.type,                                    
         message: error.msg,
       })),
     });

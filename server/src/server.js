@@ -119,7 +119,7 @@ const connectDB = async () => {
       socketTimeoutMS: 45000,
     });
 
-    console.log("✅ MongoDB connected successfully");
+    console.log(" MongoDB connected successfully");
 
     // Create default admin user if it doesn't exist
     await createDefaultAdmin();
@@ -147,7 +147,7 @@ const createDefaultAdmin = async () => {
       });
 
       await adminUser.save();
-      console.log("✅ Default admin user created");
+      console.log(" Default admin user created");
     }
   } catch (error) {
     console.error("❌ Error creating default admin:", error);
@@ -160,7 +160,7 @@ process.on("SIGTERM", async () => {
 
   try {
     await mongoose.connection.close();
-    console.log("✅ MongoDB connection closed");
+    console.log(" MongoDB connection closed");
     process.exit(0);
   } catch (error) {
     console.error("❌ Error during shutdown:", error);
@@ -173,7 +173,7 @@ process.on("SIGINT", async () => {
 
   try {
     await mongoose.connection.close();
-    console.log("✅ MongoDB connection closed");
+    console.log(" MongoDB connection closed");
     process.exit(0);
   } catch (error) {
     console.error("❌ Error during shutdown:", error);
@@ -186,13 +186,13 @@ const startServer = async () => {
   await connectDB();
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📱 Environment: ${process.env.NODE_ENV}`);
-    console.log(`🌐 API URL: http://localhost:${PORT}/api`);
-    console.log(`📶 Network API URL: http://10.84.241.18:${PORT}/api`);
+    console.log(` Server running on port ${PORT}`);
+    console.log(` Environment: ${process.env.NODE_ENV}`);
+    console.log(` API URL: http://localhost:${PORT}/api`);
+    console.log(` Network API URL: http://10.84.241.18:${PORT}/api`);
 
     if (process.env.NODE_ENV === "development") {
-      console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+      console.log(` Health check: http://localhost:${PORT}/health`);
     }
   });
 };
