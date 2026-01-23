@@ -24,9 +24,9 @@ const Cart = () => {
   } = useCart();
 
   const subtotal = getCartTotal();
-  const deliveryFee = subtotal >= 2000 ? 0 : 100;
-  const tax = subtotal * 0.16; // 16% VAT
-  const total = subtotal + deliveryFee + tax;
+  // const deliveryFee = subtotal >= 2000 ? 0 : 100;
+  const tax = 0; // subtotal * 0.16; // 16% VAT
+  const total = subtotal;
 
   const handleQuantityChange = (id, newQuantity) => {
     if (newQuantity <= 0) {
@@ -234,6 +234,7 @@ const Cart = () => {
                   </span>
                 </div>
 
+                {/* 
                 <div className="flex justify-between items-center">
                   <span className="text-neutral-600">Delivery Fee</span>
                   <span className="font-semibold text-neutral-800">
@@ -244,15 +245,12 @@ const Cart = () => {
                     )}
                   </span>
                 </div>
+                */}
 
-                <div className="flex justify-between items-center">
-                  <span className="text-neutral-600">Tax (16%)</span>
-                  <span className="font-semibold text-neutral-800">
-                    KSH {tax.toFixed(2)}
-                  </span>
-                </div>
 
-                {subtotal < 2000 && (
+
+                {/*
+                subtotal < 2000 && (
                   <motion.div
                     className="bg-blue-50 border border-blue-200 rounded-card p-4"
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -267,7 +265,7 @@ const Cart = () => {
                       </span>
                     </div>
                   </motion.div>
-                )}
+                ) */}
 
                 <div className="border-t border-neutral-200 pt-4">
                   <div className="flex justify-between items-center">

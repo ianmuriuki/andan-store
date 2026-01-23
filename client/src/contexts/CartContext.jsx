@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 const CartContext = createContext(undefined);
 
@@ -8,14 +8,14 @@ export const CartProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedCart = localStorage.getItem('andan_cart');
-    if (savedCart) {
+    const savedCart = localStorage.getItem("andan_cart");
+    if (savedCart) {                                                                                  
       try {
         const parsedCart = JSON.parse(savedCart);
         setItems(parsedCart);
       } catch (error) {
-        console.error('Error parsing saved cart:', error);
-        localStorage.removeItem('andan_cart');
+        console.error("Error parsing saved cart:", error);
+        localStorage.removeItem("andan_cart");
       }
     }
     setIsLoading(false);
@@ -23,50 +23,54 @@ export const CartProvider = ({ children }) => {
 
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem('andan_cart', JSON.stringify(items));
+      localStorage.setItem("andan_cart", JSON.stringify(items));
     }
   }, [items, isLoading]);
 
   const addToCart = (product) => {
-    setItems(prev => {
-      const existingItem = prev.find(item => item.id === product.id);
-      
+    setItems((prev) => {
+      // Use _id as the primary identifier (MongoDB ObjectId)
+      const itemId = product._id || product.id;
+      const existingItem = prev.find(
+        (item) => (item._id || item.id) === itemId
+      );
+
       if (existingItem) {
         if (existingItem.quantity >= product.stock) {
           toast.error(`Only ${product.stock} items available in stock`);
           return prev;
         }
-        
-        const updatedItems = prev.map(item =>
-          item.id === product.id
+
+        const updatedItems = prev.map((item) =>
+          (item._id || item.id) === itemId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
-        
+
         toast.success(`${product.name} quantity updated`, {
-          icon: '🛒',
+          icon: "🛒",
         });
-        
+
         return updatedItems;
       }
-      
+
       toast.success(`${product.name} added to cart`, {
-        icon: '✅',
+        icon: "✅",
       });
-      
+
       return [...prev, { ...product, quantity: 1 }];
     });
   };
 
   const removeFromCart = (id) => {
-    setItems(prev => {
-      const item = prev.find(item => item.id === id);
+    setItems((prev) => {
+      const item = prev.find((item) => (item._id || item.id) === id);
       if (item) {
         toast.success(`${item.name} removed from cart`, {
-          icon: '🗑️',
+          icon: "🗑️",
         });
       }
-      return prev.filter(item => item.id !== id);
+      return prev.filter((item) => (item._id || item.id) !== id);
     });
   };
 
@@ -76,9 +80,9 @@ export const CartProvider = ({ children }) => {
       return;
     }
 
-    setItems(prev =>
-      prev.map(item => {
-        if (item.id === id) {
+    setItems((prev) =>
+      prev.map((item) => {
+        if ((item._id || item.id) === id) {
           if (quantity > item.stock) {
             toast.error(`Only ${item.stock} items available in stock`);
             return item;
@@ -92,13 +96,13 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setItems([]);
-    toast.success('Cart cleared', {
-      icon: '🧹',
+    toast.success("Cart cleared", {
+      icon: "🧹",
     });
   };
 
   const getCartTotal = () => {
-    return items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return items.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
   const getCartCount = () => {
@@ -116,17 +120,13 @@ export const CartProvider = ({ children }) => {
     isLoading,
   };
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
 export const useCart = () => {
   const context = useContext(CartContext);
   if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 };

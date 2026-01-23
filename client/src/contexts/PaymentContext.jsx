@@ -1,13 +1,19 @@
-import { useState } from "react";
+import React, { createContext, useState, useContext } from "react";
 import { paymentService } from "../services/paymentService";
 import toast from "react-hot-toast";
 
-export const usePayment = () => {
+const PaymentContext = createContext();
+
+export const usePayment = () => useContext(PaymentContext);
+
+export const PaymentProvider = ({ children }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const initiateMpesaPayment = async (orderId, phoneNumber) => {
     setIsProcessing(true);
+    setPaymentStatus("processing");
     try {
       const response = await paymentService.initiateMpesaPayment(
         orderId,
@@ -15,32 +21,28 @@ export const usePayment = () => {
       );
 
       if (response.success) {
-        toast.success("Payment request sent to your phone");
+        toast.success("Payment request sent to your phone. Please approve the transaction.");
 
-        // FIX: Access the CheckoutRequestID with correct casing.
         const checkoutID = response.data.CheckoutRequestID;
 
         if (!checkoutID) {
-          // Safety check in case M-Pesa returns success but with an odd response structure
           toast.error("Failed to get transaction ID from M-Pesa.");
           throw new Error("Missing CheckoutRequestID");
         }
 
-        // Start polling for payment status using the correctly extracted ID
         pollPaymentStatus(checkoutID);
 
         return response.data;
       } else {
-        // Ensure error response message is shown correctly
         throw new Error(response.message || "Payment initiation failed.");
       }
     } catch (error) {
-      // Improved error logging
       console.error("Initiate M-Pesa Payment error:", error);
       toast.error(
         error.message ||
           "Payment initiation failed. Check console for details.",
       );
+      setPaymentStatus("failed");
       throw error;
     } finally {
       setIsProcessing(false);
@@ -51,39 +53,34 @@ export const usePayment = () => {
     const maxAttempts = 30; // Poll for 5 minutes (30 * 10 seconds)
     let attempts = 0;
     let consecutiveErrors = 0;
-    const maxConsecutiveErrors = 5; // Stop after 5 consecutive errors
+    const maxConsecutiveErrors = 5;
 
     const poll = async () => {
       try {
         const response =
           await paymentService.queryPaymentStatus(checkoutRequestID);
 
-        // Reset consecutive error counter on success
         consecutiveErrors = 0;
 
-        // M-Pesa status query returns '0' on success, '17' on canceled, '1032' on pending.
         if (response.data.ResultCode === "0") {
-          // Payment successful
           setPaymentStatus("completed");
-          toast.success("Payment completed successfully!");
+          setShowSuccessModal(true); // Show the success modal
           return;
         } else if (response.data.ResultCode !== "1032") {
-          // Payment failed (e.g., canceled by user, 1032 means still pending)
           setPaymentStatus("failed");
           toast.error(
-            "Payment failed. Please try again or check your M-Pesa PIN.",
+            response.data.ResultDesc || "Payment failed. Please try again.",
           );
           return;
         }
 
-        // Continue polling if still pending
         attempts++;
         if (attempts < maxAttempts) {
-          setTimeout(poll, 10000); // Poll every 10 seconds
+          setTimeout(poll, 10000);
         } else {
           setPaymentStatus("timeout");
           toast.error(
-            "Payment timeout. Please check your M-Pesa messages and status.",
+            "Payment timeout. Please check your M-Pesa messages.",
           );
         }
       } catch (error) {
@@ -91,17 +88,15 @@ export const usePayment = () => {
         consecutiveErrors++;
         attempts++;
 
-        // Stop polling after multiple consecutive errors
         if (consecutiveErrors >= maxConsecutiveErrors) {
           setPaymentStatus("error");
           toast.error(
-            "Unable to verify payment status. Please check your M-Pesa app or contact support if not completed.",
+            "Unable to verify payment status. Please contact support if payment was made.",
           );
           return;
         }
 
         if (attempts < maxAttempts) {
-          // Continue polling, but increase wait time after errors
           const delay = 10000 * (1 + consecutiveErrors * 0.5);
           setTimeout(poll, delay);
         } else {
@@ -115,12 +110,23 @@ export const usePayment = () => {
 
     poll();
   };
+  
+  const closeSuccessModal = () => {
+    setShowSuccessModal(false);
+    setPaymentStatus(null); 
+  };
 
-  return {
-    initiateMpesaPayment,
+  const value = {
     isProcessing,
     paymentStatus,
-    setPaymentStatus,
+    showSuccessModal,
+    initiateMpesaPayment,
+    closeSuccessModal,
   };
-};
 
+  return (
+    <PaymentContext.Provider value={value}>
+      {children}
+    </PaymentContext.Provider>
+  );
+};
