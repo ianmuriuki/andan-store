@@ -2,7 +2,7 @@
 
 A modern, full-stack grocery e-commerce platform built with the MERN stack, featuring M-Pesa integration and sophisticated UI/UX design.
 
-## 🚀 Features
+##  Features
 
 ### Client Features
 - **Modern UI/UX**: Sleek design with Inter/Playfair Display typography
@@ -20,7 +20,7 @@ A modern, full-stack grocery e-commerce platform built with the MERN stack, feat
 - **User Management**: Customer support and account administration
 - **Promotion Tools**: Discount codes and flash sales management
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS, Framer Motion
 - **Backend**: Node.js, Express.js, TypeScript
@@ -30,7 +30,7 @@ A modern, full-stack grocery e-commerce platform built with the MERN stack, feat
 - **State Management**: React Query, Context API
 - **Validation**: Zod, React Hook Form
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 andan-grocery/
@@ -55,7 +55,7 @@ andan-grocery/
 └── shared/                # Shared types and utilities
 ```
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 - Node.js 18+
@@ -104,7 +104,7 @@ cd client
 npm run dev
 ```
 
-## 🎨 Design System
+##  Design System
 
 ### Typography
 - **Headings**: Playfair Display (elegant serif)
@@ -150,7 +150,7 @@ GET  /api/orders/:id       # Get single order
 PUT  /api/orders/:id       # Update order status
 ```
 
-## 💳 M-Pesa Integration
+##  M-Pesa Integration
 
 The system integrates with Safaricom's M-Pesa Daraja API for secure mobile payments:
 
@@ -159,7 +159,7 @@ The system integrates with Safaricom's M-Pesa Daraja API for secure mobile payme
 3. **Transaction Verification**: Validates payment status
 4. **Receipt Generation**: Creates digital receipts
 
-## 🔒 Security Features
+##  Security Features
 
 - **JWT Authentication**: Secure token-based auth
 - **Password Hashing**: bcrypt with salt rounds
@@ -168,7 +168,7 @@ The system integrates with Safaricom's M-Pesa Daraja API for secure mobile payme
 - **CORS Protection**: Cross-origin request security
 - **Helmet.js**: Security headers
 
-## 🧪 Testing
+##  Testing
 
 ```bash
 # Run server tests
@@ -183,7 +183,7 @@ npm test
 npm run test:e2e
 ```
 
-## 🚀 Deployment
+##  Deployment
 
 ### Production Build
 ```bash
@@ -199,11 +199,11 @@ npm run build
 ### Environment Variables
 See `.env.example` files for required environment variables.
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -213,4 +213,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-For support, email support@andangrocery.com or join our Slack channel.
+For support, email muriuki.dev@gmail.com or join our Slack channel.
